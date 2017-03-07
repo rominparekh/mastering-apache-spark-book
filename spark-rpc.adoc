@@ -1,4 +1,4 @@
-== [[RpcEnv]] RPC Environment (RpcEnv)
+== [[RpcEnv]] RpcEnv -- RPC Environment
 
 [CAUTION]
 ====
@@ -7,7 +7,7 @@ FIXME
 * How to know the available endpoints in the environment? See the exercise link:exercises/spark-exercise-custom-rpc-environment.adoc[Developing RPC Environment].
 ====
 
-*RPC Environment* (aka *RpcEnv*) is an environment for RpcEndpoints to process messages. A RPC Environment manages the entire lifecycle of RpcEndpoints:
+*RPC Environment* (aka *RpcEnv*) is an environment for link:spark-rpc-RpcEndpoint.adoc[RpcEndpoints] to process messages. A RPC Environment manages the entire lifecycle of RpcEndpoints:
 
 * registers (sets up) endpoints (by name or uri)
 * routes incoming messages to them
@@ -15,9 +15,11 @@ FIXME
 
 A RPC Environment is defined by the *name*, *host*, and *port*. It can also be controlled by a *security manager*.
 
-The only implementation of RPC Environment is link:spark-rpc-netty.adoc[Netty-based implementation]. Read the section <<RpcEnvFactory, RpcEnvFactory>>.
+You can create a RPC Environment using <<create, RpcEnv.create>> factory methods.
 
-*RpcEndpoints* define how to handle *messages* (what *functions* to execute given a message). RpcEndpoints register (with a name or uri) to RpcEnv to receive messages from *RpcEndpointRefs*.
+The only implementation of RPC Environment is link:spark-rpc-netty.adoc[Netty-based implementation].
+
+A link:spark-rpc-RpcEndpoint.adoc[RpcEndpoint] defines how to handle *messages* (what *functions* to execute given a message). RpcEndpoints register (with a name or uri) to `RpcEnv` to receive messages from link:spark-RpcEndpointRef.adoc[RpcEndpointRefs].
 
 .RpcEnvironment with RpcEndpoints and RpcEndpointRefs
 image::diagrams/rpcenv-endpoints.png[align="center"]
@@ -26,7 +28,29 @@ RpcEndpointRefs can be looked up by *name* or *uri* (because different RpcEnvs m
 
 `org.apache.spark.rpc` package contains the machinery for RPC communication in Spark.
 
-=== [[setupEndpoint]] `setupEndpoint` Method
+=== [[client-mode]] Client Mode = is this an executor or the driver?
+
+When an RPC Environment is initialized link:spark-sparkenv.adoc#createDriverEnv[as part of the initialization of the driver] or link:spark-sparkenv.adoc#createExecutorEnv[executors] (using `RpcEnv.create`), `clientMode` is `false` for the driver and `true` for executors.
+
+```
+RpcEnv.create(actorSystemName, hostname, port, conf, securityManager, clientMode = !isDriver)
+```
+
+Refer to <<client-mode,Client Mode>> in Netty-based RpcEnv for the implementation-specific details.
+
+=== [[asyncSetupEndpointRefByURI]] Creating RpcEndpointRef For URI -- `asyncSetupEndpointRefByURI` Method
+
+CAUTION: FIXME
+
+=== [[setupEndpointRefByURI]] Creating RpcEndpointRef For URI -- `setupEndpointRefByURI` Method
+
+CAUTION: FIXME
+
+=== [[shutdown]] `shutdown` Method
+
+CAUTION: FIXME
+
+=== [[setupEndpoint]] Registering RPC Endpoint -- `setupEndpoint` Method
 
 CAUTION: FIXME
 
@@ -34,63 +58,13 @@ CAUTION: FIXME
 
 CAUTION: FIXME
 
-=== [[RpcEnvFactory]] RpcEnvFactory
-
-Spark comes with (`private[spark] trait`) `RpcEnvFactory` which is the factory contract to create a RPC Environment.
-
-An RpcEnvFactory implementation has a single method `create(config: RpcEnvConfig): RpcEnv` that returns a `RpcEnv` for a given <<RpcEnvConfig, RpcEnvConfig>>.
-
-There are two `RpcEnvFactory` implementations in Spark:
-
-* `netty` using `org.apache.spark.rpc.netty.NettyRpcEnvFactory`. This is the default factory for RpcEnv as of Spark 1.6.0-SNAPSHOT.
-* `akka` using `org.apache.spark.rpc.akka.AkkaRpcEnvFactory`
-
-You can choose an RPC implementation to use by <<settings, spark.rpc>> (default: `netty`). The setting can be one of the two short names for the known RpcEnvFactories - `netty` or `akka` - or a fully-qualified class name of your custom factory (including Netty-based and Akka-based implementations).
-
-```
-$ ./bin/spark-shell --conf spark.rpc=netty
-
-$ ./bin/spark-shell --conf spark.rpc=org.apache.spark.rpc.akka.AkkaRpcEnvFactory
-```
-
-=== [[RpcEndpoint]][[rpcendpoint]] RpcEndpoint
-
-*RpcEndpoint* defines how to handle *messages* (what *functions* to execute given a message). RpcEndpoints live inside RpcEnv after being registered by a name.
-
-A RpcEndpoint can be registered to one and only one RpcEnv.
-
-The lifecycle of a RpcEndpoint is `onStart`, `receive` and `onStop` in sequence.
-
-`receive` can be called concurrently.
-
-TIP: If you want `receive` to be thread-safe, use <<ThreadSafeRpcEndpoint, ThreadSafeRpcEndpoint>>.
-
-`onError` method is called for any exception thrown.
-
 === [[ThreadSafeRpcEndpoint]] ThreadSafeRpcEndpoint
 
-`ThreadSafeRpcEndpoint` is a marker <<RpcEndpoint, RpcEndpoint>> that does nothing by itself but tells...
+`ThreadSafeRpcEndpoint` is a marker link:spark-rpc-RpcEndpoint.adoc[RpcEndpoint] that does nothing by itself but tells...
 
 CAUTION: FIXME What is marker?
 
 NOTE: `ThreadSafeRpcEndpoint` is a `private[spark] trait`.
-
-=== [[RpcEndpointRef]] RpcEndpointRef
-
-A *RpcEndpointRef* is a reference for a <<rpcendpoint, RpcEndpoint>> in a RpcEnv.
-
-It is serializable entity and so you can send it over a network or save it for later use (it can however be deserialized using the owning RpcEnv only).
-
-A RpcEndpointRef has <<rpcaddress, an address>> (a Spark URL), and a name.
-
-You can send asynchronous one-way messages to the corresponding RpcEndpoint using `send` method.
-
-You can send a semi-synchronous message, i.e. "subscribe" to be notified when a response arrives, using `ask` method. You can also block the current calling thread for a response using `askWithRetry` method.
-
-* `spark.rpc.numRetries` (default: `3`) - the number of times to retry connection attempts.
-* `spark.rpc.retry.wait` (default: `3s`) - the number of milliseconds to wait on each retry.
-
-It also uses <<endpoint-lookup-timeout, lookup timeouts>>.
 
 === [[RpcAddress]] RpcAddress
 
@@ -104,7 +78,7 @@ RpcAddress is encoded as a *Spark URL*, i.e. `spark://host:port`.
 
 It is in the format of *spark://[name]@[rpcAddress.host]:[rpcAddress.port]*.
 
-=== [[stop]] Stopping `RpcEndpointRef` -- `stop` Method
+=== [[stop]] Stopping RpcEndpointRef -- `stop` Method
 
 [source, scala]
 ----
@@ -139,23 +113,13 @@ Their value can be a number alone (seconds) or any number with time suffix, e.g.
 
 When RpcEnv catches uncaught exceptions, it uses `RpcCallContext.sendFailure` to send exceptions back to the sender, or logging them if no such sender or `NotSerializableException`.
 
-If any error is thrown from one of RpcEndpoint methods except `onError`, `onError` will be invoked with the cause. If `onError` throws an error, RpcEnv will ignore it.
-
-=== [[client-mode]] Client Mode = is this an executor or the driver?
-
-When an RPC Environment is initialized link:spark-sparkenv.adoc#createDriverEnv[as part of the initialization of the driver] or link:spark-sparkenv.adoc#createExecutorEnv[executors] (using `RpcEnv.create`), `clientMode` is `false` for the driver and `true` for executors.
-
-```
-RpcEnv.create(actorSystemName, hostname, port, conf, securityManager, clientMode = !isDriver)
-```
-
-Refer to <<client-mode,Client Mode>> in Netty-based RpcEnv for the implementation-specific details.
+If any error is thrown from one of link:spark-rpc-RpcEndpoint.adoc[RpcEndpoint] methods except `onError`, `onError` will be invoked with the cause. If `onError` throws an error, RpcEnv will ignore it.
 
 === [[RpcEnvConfig]] RpcEnvConfig
 
-*RpcEnvConfig* is a placeholder for an instance of link:spark-configuration.adoc[SparkConf], the name of the RPC Environment, host and port, a security manager, and <<client-mode, clientMode>>.
+`RpcEnvConfig` is a placeholder for an instance of link:spark-SparkConf.adoc[SparkConf], the name of the RPC Environment, host and port, a security manager, and <<client-mode, clientMode>>.
 
-=== [[create]][[rpcenv-create]] `create` Factory Methods
+=== [[create]] Creating RpcEnv -- `create` Factory Methods
 
 [source, scala]
 ----
@@ -165,7 +129,7 @@ create(
   port: Int,
   conf: SparkConf,
   securityManager: SecurityManager,
-  clientMode: Boolean = false): RpcEnv
+  clientMode: Boolean = false): RpcEnv  // <1>
 
 create(
   name: String,
@@ -176,45 +140,69 @@ create(
   securityManager: SecurityManager,
   clientMode: Boolean): RpcEnv
 ----
+<1> The 6-argument `create` (with `clientMode` disabled) simply passes the input arguments on to the second `create` making `bindAddress` and `advertiseAddress` the same.
 
-You can create a RPC Environment using the helper method `RpcEnv.create`.
+`create` creates a <<RpcEnvConfig, RpcEnvConfig>> (with the input arguments) and link:spark-rpc-netty.adoc#create[creates a `NettyRpcEnv`].
 
-It assumes that you have a <<RpcEnvFactory, RpcEnvFactory>> with an empty constructor so that it can be created via Reflection that is available under `spark.rpc` setting.
+[NOTE]
+====
+Copied (almost verbatim) from https://issues.apache.org/jira/browse/SPARK-10997[SPARK-10997 Netty-based RPC env should support a "client-only" mode] and the link:https://github.com/apache/spark/commit/71d1c907dec446db566b19f912159fd8f46deb7d[commit]:
+
+"Client mode" means the RPC env will not listen for incoming connections.
+
+This allows certain processes in the Spark stack (such as Executors or tha YARN client-mode AM) to act as pure clients when using the netty-based RPC backend, reducing the number of sockets Spark apps need to use and also the number of open ports.
+
+The AM connects to the driver in "client mode", and that connection is used for all driver -- AM communication, and so the AM is properly notified when the connection goes down.
+
+In "general", non-YARN case, `clientMode` flag is therefore enabled for executors and disabled for the driver.
+
+In Spark on YARN in link:spark-deploy-mode.adoc#client[`client` deploy mode], `clientMode` flag is however enabled explicitly when Spark on YARN's link:spark-yarn-applicationmaster.adoc#runExecutorLauncher-sparkYarnAM[ApplicationMaster] creates the `sparkYarnAM` RPC Environment.
+====
+
+[NOTE]
+====
+`create` is used when:
+
+. link:spark-sparkenv.adoc#create[`SparkEnv` creates a `RpcEnv`] (for the driver and executors).
+
+. Spark on YARN's link:spark-yarn-applicationmaster.adoc#runExecutorLauncher-sparkYarnAM[ApplicationMaster] creates the `sparkYarnAM` RPC Environment (with `clientMode` enabled).
+. link:spark-executor-backends-CoarseGrainedExecutorBackend.adoc#run-driverPropsFetcher[CoarseGrainedExecutorBackend] creates the temporary `driverPropsFetcher` RPC Environment (to fetch the current Spark properties from the driver).
+
+. `org.apache.spark.deploy.Client` standalone application creates the `driverClient` RPC Environment.
+
+. link:spark-standalone-master.adoc#startRpcEnvAndEndpoint[Spark Standalone's master] creates the `sparkMaster` RPC Environment.
+
+. link:spark-standalone-worker.adoc#startRpcEnvAndEndpoint[Spark Standalone's worker] creates the `sparkWorker` RPC Environment.
+
+. Spark Standalone's `DriverWrapper` creates the `Driver` RPC Environment.
+====
 
 === [[settings]] Settings
 
-==== [[spark.rpc]] spark.rpc
+.Spark Properties
+[cols="1,1,2",options="header",width="100%"]
+|===
+| Spark Property
+| Default Value
+| Description
 
-`spark.rpc` (default: `netty` since Spark 1.6.0-SNAPSHOT) - the RPC implementation to use. See <<RpcEnvFactory, RpcEnvFactory>>.
+| [[spark.rpc.lookupTimeout]] `spark.rpc.lookupTimeout`
+| `120s`
+| Timeout to use for RPC remote endpoint lookup. Refer to <<endpoint-lookup-timeout, Endpoint Lookup Timeout>>
 
-==== [[spark.rpc.lookupTimeout]] spark.rpc.lookupTimeout
+| [[spark.rpc.numRetries]] `spark.rpc.numRetries`
+| `3`
+| Number of attempts to send a message to and receive a response from a remote endpoint.
 
-`spark.rpc.lookupTimeout` (default: `120s`) - the default timeout to use for RPC remote endpoint lookup. Refer to <<endpoint-lookup-timeout, Endpoint Lookup Timeout>>.
+| [[spark.rpc.numRetries]] `spark.rpc.retry.wait`
+| `3s`
+| Time to wait between retries.
 
-==== [[spark.network.timeout]] spark.network.timeout
+| [[spark.rpc.askTimeout]] `spark.rpc.askTimeout`
+| `120s`
+| Timeout for RPC ask calls. Refer to <<ask-timeout, Ask Operation Timeout>>.
 
-`spark.network.timeout` (default: `120s`) - the default network timeout to use for RPC remote endpoint lookup.
-
-It is used as a fallback value for <<spark.rpc.askTimeout, spark.rpc.askTimeout>>.
-
-==== Other
-
-* `spark.rpc.numRetries` (default: `3`) - the number of attempts to send a message and receive a response from a remote endpoint.
-* `spark.rpc.retry.wait` (default: `3s`) - the time to wait on each retry.
-
-[[spark.rpc.askTimeout]]
-* `spark.rpc.askTimeout` (default: `120s`) - the default timeout to use for RPC ask operations. Refer to <<ask-timeout, Ask Operation Timeout>>.
-
-=== Others
-
-link:spark-standalone.adoc[The Worker class] calls `startRpcEnvAndEndpoint` with the following configuration options:
-
-* host
-* port
-* webUiPort
-* cores
-* memory
-* masters
-* workDir
-
-It starts `sparkWorker[N]` where `N` is the identifier of a worker.
+| [[spark.network.timeout]] `spark.network.timeout`
+| `120s`
+| Network timeout to use for RPC remote endpoint lookup. Fallback for <<spark.rpc.askTimeout, spark.rpc.askTimeout>>.
+|===

@@ -41,8 +41,8 @@ NOTE: Interestingly, a `DataFrameWriter` is really a type constructor in Scala. 
 `DataFrameWriter` uses the following mutable attributes to build a properly-defined write specification for <<insertInto, insertInto>>, <<saveAsTable, saveAsTable>>, and <<save, save>>:
 
 .Attributes and Corresponding Setters
-[frame="topbot",cols="1,2",options="header"]
-|======================
+[cols="1,2",options="header"]
+|===
 |Attribute |Setters
 |`source`        |<<format, format>>
 |`mode` | <<mode, mode>>
@@ -51,7 +51,7 @@ NOTE: Interestingly, a `DataFrameWriter` is really a type constructor in Scala. 
 |`bucketColumnNames` | <<bucketBy, bucketBy>>
 |`numBuckets` | <<bucketBy, bucketBy>>
 |`sortColumnNames` | <<sortBy, sortBy>>
-|======================
+|===
 
 === [[saveAsTable]] `saveAsTable` Method
 
@@ -64,16 +64,16 @@ saveAsTable(tableName: String): Unit
 
 First, `tableName` is parsed to an internal table identifier. `saveAsTable` then checks whether the table exists or not and uses <<mode, save mode>> to decide what to do.
 
-`saveAsTable` uses the link:spark-sql-sessionstate.adoc#SessionCatalog[SessionCatalog] for the current session.
+`saveAsTable` uses the link:spark-sql-SessionCatalog.adoc[SessionCatalog] for the current session.
 
-.saveAsTable's Behaviour per Save Mode
-[frame="topbot",cols="1,1,2",options="header"]
-|======================
+.``saveAsTable``'s Behaviour per Save Mode
+[cols="1,1,2",options="header"]
+|===
 | Does table exist? |Save Mode | Behaviour
 | yes       | `Ignore` | Do nothing
 | yes       | `ErrorIfExists` | Throws a `AnalysisException` exception with `Table [tableIdent] already exists.` error message.
 | _anything_       | _anything_ | It creates a `CatalogTable` and link:spark-sql-sessionstate.adoc#executePlan[executes the `CreateTable` plan].
-|======================
+|===
 
 [source, scala]
 ----

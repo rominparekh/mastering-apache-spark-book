@@ -2,7 +2,7 @@
 
 Like Apache Spark in general, *Spark SQL* in particular is all about distributed in-memory computations. The primary difference between them -- Spark SQL and the "bare" Spark Core's RDD computation model -- is in offering a framework for loading, querying and persisting structured and semi-structured data using structured queries that can equally be expressed using SQL (with subqueries), Hive QL and the custom high-level SQL-like, declarative, type-safe link:spark-sql-dataset.adoc[Dataset] API (for a structured query DSL). Regardless of the structured query language you choose they all end up as a link:spark-sql-catalyst.adoc[tree of Catalyst expressions] with link:spark-sql-catalyst-Optimizer.adoc[further optimizations] along the way to your large distributed data sets.
 
-With the recent changes in Spark 2.0, Spark SQL is now _de facto_ the primary and feature-rich interface to Spark's underlaying in-memory distributed platform (hiding Spark Core's RDDs behind higher-level abstractions).
+With the recent changes in Spark 2.0, Spark SQL is now _de facto_ the primary and feature-rich interface to Spark's underlying in-memory distributed platform (hiding Spark Core's RDDs behind higher-level abstractions).
 
 [source, scala]
 ----
@@ -53,7 +53,7 @@ spark.read
   .save("output-csv")
 ----
 
-With link:spark-sql-structured-streaming.adoc[Structured Streaming] feature however, the above static batch query becomes dynamic and continuous paving the way for *continuous applications*.
+With link:spark-structured-streaming.adoc[Structured Streaming] feature however, the above static batch query becomes dynamic and continuous paving the way for *continuous applications*.
 
 [source, scala]
 ----
@@ -90,7 +90,7 @@ Spark SQL supports link:spark-sql-catalyst-optimizer-PushDownPredicate.adoc[pred
 Spark SQL comes with the different APIs to work with:
 
 1. link:spark-sql-dataset.adoc[Dataset API] (formerly link:spark-sql-dataframe.adoc[DataFrame API]) with a strongly-typed LINQ-like Query DSL that Scala programmers will likely find very appealing to use.
-2. link:spark-sql-structured-streaming.adoc[Structured Streaming API (aka Streaming Datasets)] for continuous incremental execution of structured queries.
+2. link:spark-structured-streaming.adoc[Structured Streaming API (aka Streaming Datasets)] for continuous incremental execution of structured queries.
 3. Non-programmers will likely use SQL as their query language through direct integration with Hive
 4. JDBC/ODBC fans can use JDBC interface (through link:spark-sql-thrift-server.adoc[Thrift JDBC/ODBC Server]) and connect their tools to Spark's distributed query engine.
 

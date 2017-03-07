@@ -76,21 +76,24 @@ Detected yarn cluster mode, but isn't running on a cluster. Deployment to YARN i
 
 CAUTION: FIXME How to "trigger" the exception? What are the steps?
 
-When `spark.logConf` is enabled link:spark-configuration.adoc[SparkConf.toDebugString] is called.
+When `spark.logConf` is enabled link:spark-SparkConf.adoc[SparkConf.toDebugString] is called.
 
 NOTE: `SparkConf.toDebugString` is called very early in the initialization process and other settings configured afterwards are not included. Use `sc.getConf.toDebugString` once SparkContext is initialized.
 
-The driver's host and port are set if missing. link:spark-sparkenv.adoc#spark_driver_host[spark.driver.host] becomes the value of <<localHostName, Utils.localHostName>> (or an exception is thrown) while link:spark-sparkenv.adoc#spark_driver_port[spark.driver.port] is set to `0`.
+The driver's host and port are set if missing. link:spark-driver.adoc#spark_driver_host[spark.driver.host] becomes the value of <<localHostName, Utils.localHostName>> (or an exception is thrown) while link:spark-driver.adoc#spark_driver_port[spark.driver.port] is set to `0`.
 
-NOTE: link:spark-sparkenv.adoc#spark_driver_host[spark.driver.host] and link:spark-sparkenv.adoc#spark_driver_port[spark.driver.port] are expected to be set on the driver. It is later asserted by link:spark-sparkenv.adoc#createDriverEnv[SparkEnv.createDriverEnv].
+NOTE: link:spark-driver.adoc#spark_driver_host[spark.driver.host] and link:spark-driver.adoc#spark_driver_port[spark.driver.port] are expected to be set on the driver. It is later asserted by link:spark-sparkenv.adoc#createDriverEnv[SparkEnv].
 
-link:spark-executor.adoc#spark_executor_id[spark.executor.id] setting is set to `driver`.
+link:spark-Executor.adoc#spark.executor.id[spark.executor.id] setting is set to `driver`.
 
 TIP: Use `sc.getConf.get("spark.executor.id")` to know where the code is executed -- link:spark-sparkenv.adoc[driver or executors].
 
 It sets the jars and files based on `spark.jars` and `spark.files`, respectively. These are files that are required for proper task execution on executors.
 
-If link:spark-scheduler-listeners-eventlogginglistener.adoc[event logging] is enabled, i.e. link:spark-scheduler-listeners-eventlogginglistener.adoc#spark_eventLog_enabled[spark.eventLog.enabled] flag is `true`, the internal field `_eventLogDir` is set to the value of link:spark-scheduler-listeners-eventlogginglistener.adoc#spark_eventLog_dir[spark.eventLog.dir] setting or the default value `/tmp/spark-events`. Also, if link:spark-scheduler-listeners-eventlogginglistener.adoc#spark_eventLog_compress[spark.eventLog.compress] is enabled (it is not by default), the short name of the `CompressionCodec` is assigned to `_eventLogCodec`. The config key is link:spark-service-broadcastmanager.adoc#spark.io.compression.codec[spark.io.compression.codec] (default: `lz4`).
+If link:spark-scheduler-listeners-eventlogginglistener.adoc[event logging] is enabled, i.e. link:spark-scheduler-listeners-eventlogginglistener.adoc#spark_eventLog_enabled[spark.eventLog.enabled] flag is `true`, the internal field `_eventLogDir` is set to the value of link:spark-scheduler-listeners-eventlogginglistener.adoc#spark_eventLog_dir[spark.eventLog.dir] setting or the default value `/tmp/spark-events`.
+
+[[_eventLogCodec]]
+Also, if link:spark-scheduler-listeners-eventlogginglistener.adoc#spark_eventLog_compress[spark.eventLog.compress] is enabled (it is not by default), the short name of the link:spark-CompressionCodec.adoc[CompressionCodec] is assigned to `_eventLogCodec`. The config key is link:spark-service-broadcastmanager.adoc#spark_io_compression_codec[spark.io.compression.codec] (default: `lz4`).
 
 TIP: Read about compression codecs in link:spark-service-broadcastmanager.adoc#compression[Compression].
 
@@ -109,11 +112,16 @@ A <<createSparkEnv, `SparkEnv` is created>>.
 
 CAUTION: FIXME What's MetadataCleaner?
 
-[[ConsoleProgressBar]]
-Optional link:spark-sparkcontext-ConsoleProgressBar.adoc[ConsoleProgressBar] with link:spark-sparkcontext-ConsoleProgressBar.adoc#SparkStatusTracker[SparkStatusTracker] are created.
+=== [[_statusTracker]] Creating SparkStatusTracker
+
+`SparkContext` creates a link:spark-sparkcontext-SparkStatusTracker.adoc#creating-instance[SparkStatusTracker].
+
+=== [[_progressBar]] Creating Optional ConsoleProgressBar
+
+`SparkContext` creates the optional link:spark-sparkcontext-ConsoleProgressBar.adoc#creating-instance[ConsoleProgressBar] when link:spark-sparkcontext-ConsoleProgressBar.adoc#spark.ui.showConsoleProgress[spark.ui.showConsoleProgress] property is enabled and the `INFO` logging level for `SparkContext` is disabled.
 
 [[ui]]
-link:spark-webui-SparkUI.adoc#createLiveUI[`SparkUI` creates a web UI] (as `_ui`) if the property link:spark-webui.adoc#spark_ui_enabled[spark.ui.enabled] is enabled (i.e. `true`).
+link:spark-webui-SparkUI.adoc#createLiveUI[`SparkUI` creates a web UI] (as `_ui`) if the property link:spark-webui.adoc#spark.ui.enabled[spark.ui.enabled] is enabled (i.e. `true`).
 
 CAUTION: FIXME Where's `_ui` used?
 
@@ -121,7 +129,7 @@ A Hadoop configuration is created. See link:spark-sparkcontext.adoc#hadoopConfig
 
 If there are jars given through the SparkContext constructor, they are added using `addJar`. Same for files using `addFile`.
 
-At this point in time, the amount of memory to allocate to each executor (as `_executorMemory`) is calculated. It is the value of link:spark-executor.adoc#spark_executor_memory[spark.executor.memory] setting, or link:spark-sparkcontext.adoc#environment-variables[SPARK_EXECUTOR_MEMORY] environment variable (or currently-deprecated `SPARK_MEM`), or defaults to `1024`.
+At this point in time, the amount of memory to allocate to each executor (as `_executorMemory`) is calculated. It is the value of link:spark-Executor.adoc#spark.executor.memory[spark.executor.memory] setting, or link:spark-sparkcontext.adoc#environment-variables[SPARK_EXECUTOR_MEMORY] environment variable (or currently-deprecated `SPARK_MEM`), or defaults to `1024`.
 
 `_executorMemory` is later available as `sc.executorMemory` and used for LOCAL_CLUSTER_REGEX, link:spark-standalone.adoc#SparkDeploySchedulerBackend[Spark Standalone's SparkDeploySchedulerBackend], to set `executorEnvs("SPARK_EXECUTOR_MEMORY")`, MesosSchedulerBackend, CoarseMesosSchedulerBackend.
 
@@ -139,7 +147,8 @@ FIXME
 
 The Mesos scheduler backend's configuration is included in `executorEnvs`, i.e. link:spark-sparkcontext.adoc#environment-variables[SPARK_EXECUTOR_MEMORY], `_conf.getExecutorEnv`, and `SPARK_USER`.
 
-link:spark-sparkcontext-HeartbeatReceiver.adoc[HeartbeatReceiver RPC endpoint] is registered (as `_heartbeatReceiver`).
+[[_heartbeatReceiver]]
+`SparkContext` registers link:spark-HeartbeatReceiver.adoc[HeartbeatReceiver RPC endpoint].
 
 <<createTaskScheduler, SparkContext.createTaskScheduler>> is executed (using the master URL) and the result becomes the internal `_schedulerBackend` and `_taskScheduler`.
 
@@ -148,22 +157,35 @@ NOTE: The internal `_schedulerBackend` and `_taskScheduler` are used by `schedul
 link:spark-dagscheduler.adoc#creating-instance[DAGScheduler is created] (as `_dagScheduler`).
 
 [[TaskSchedulerIsSet]]
-`SparkContext` sends a blocking link:spark-sparkcontext-HeartbeatReceiver.adoc#TaskSchedulerIsSet[`TaskSchedulerIsSet` message to HeartbeatReceiver RPC endpoint] (to inform that the `TaskScheduler` is now available).
+`SparkContext` sends a blocking link:spark-HeartbeatReceiver.adoc#TaskSchedulerIsSet[`TaskSchedulerIsSet` message to HeartbeatReceiver RPC endpoint] (to inform that the `TaskScheduler` is now available).
 
-link:spark-taskscheduler.adoc#start[TaskScheduler is started].
+=== [[taskScheduler-start]] Starting TaskScheduler
 
-The internal fields, `_applicationId` and `_applicationAttemptId`, are set (using `applicationId` and `applicationAttemptId` from the link:spark-taskscheduler.adoc#contract[TaskScheduler Contract]).
+`SparkContext` link:spark-TaskScheduler.adoc#start[starts `TaskScheduler`].
 
-The setting `spark.app.id` is set to the current application id and Web UI gets notified about it if used (using `setAppId(_applicationId)`).
+=== [[_applicationId]][[_applicationAttemptId]] Setting Unique Identifiers of Spark Application and Its Execution Attempt -- _applicationId and _applicationAttemptId
 
-[[BlockManager-initialization]]
+`SparkContext` sets the internal fields -- `_applicationId` and `_applicationAttemptId` -- (using `applicationId` and `applicationAttemptId` methods from the link:spark-TaskScheduler.adoc#contract[TaskScheduler Contract]).
+
+NOTE: `SparkContext` requests `TaskScheduler` for the link:spark-TaskScheduler.adoc#applicationId[unique identifier of a Spark application] (that is currently only implemented by link:spark-taskschedulerimpl.adoc#applicationId[TaskSchedulerImpl] that uses `SchedulerBackend` to link:spark-SchedulerBackend.adoc#applicationId[request the identifier]).
+
+NOTE: The unique identifier of a Spark application is used to initialize link:spark-webui-SparkUI.adoc#setAppId[SparkUI] and link:spark-blockmanager.adoc#initialize[BlockManager].
+
+NOTE: `_applicationAttemptId` is used when `SparkContext` is requested for the link:spark-sparkcontext.adoc#applicationAttemptId[unique identifier of execution attempt of a Spark application] and when `EventLoggingListener` link:spark-scheduler-listeners-eventlogginglistener.adoc#creating-instance[is created].
+
+=== [[spark.app.id]] Setting spark.app.id Spark Property in SparkConf
+
+`SparkContext` sets link:spark-SparkConf.adoc#spark.app.id[spark.app.id] property to be the <<_applicationId, unique identifier of a Spark application>> and, if enabled, link:spark-webui-SparkUI.adoc#setAppId[passes it on to `SparkUI`].
+
+=== [[BlockManager-initialization]] Initializing BlockManager
+
 The link:spark-blockmanager.adoc#initialize[BlockManager (for the driver) is initialized] (with `_applicationId`).
 
-CAUTION: FIXME Why should UI know about the application id?
+=== [[MetricsSystem-start]] Starting MetricsSystem
 
-link:spark-metrics.adoc#start[`MetricsSystem` is started] (after the application id is set using `spark.app.id`).
+`SparkContext` link:spark-MetricsSystem.adoc#start[starts `MetricsSystem`].
 
-CAUTION: FIXME Why does Metric System need the application id?
+NOTE: `SparkContext` starts `MetricsSystem` after <<spark.app.id, setting spark.app.id Spark property>> as `MetricsSystem` uses it to link:spark-MetricsSystem.adoc#buildRegistryName[build unique identifiers fo metrics sources].
 
 The driver's metrics (servlet handler) are attached to the web ui after the metrics system is started.
 
@@ -173,11 +195,14 @@ The driver's metrics (servlet handler) are attached to the web ui after the metr
 CAUTION: FIXME Why is `_eventLogger` required to be the internal field of SparkContext? Where is this used?
 
 [[ExecutorAllocationManager]]
-If link:spark-dynamic-allocation.adoc#isDynamicAllocationEnabled[dynamic allocation is enabled], link:spark-service-executor-allocation-manager.adoc[ExecutorAllocationManager] is created (as `_executorAllocationManager`) and immediately started.
+If link:spark-dynamic-allocation.adoc#isDynamicAllocationEnabled[dynamic allocation is enabled], link:spark-ExecutorAllocationManager.adoc#creating-instance[`ExecutorAllocationManager` is created] (as `_executorAllocationManager`) and immediately link:spark-ExecutorAllocationManager.adoc#start[started].
 
 NOTE: `_executorAllocationManager` is exposed (as a method) to link:yarn/spark-yarn-yarnschedulerbackend.adoc#reset[YARN scheduler backends to reset their state to the initial state].
 
-`_cleaner` is set to link:spark-service-contextcleaner.adoc[ContextCleaner] if `spark.cleaner.referenceTracking` is enabled (i.e. `true`). By default it is enabled.
+[[_cleaner]][[ContextCleaner]]
+If link:spark-service-contextcleaner.adoc#spark_cleaner_referenceTracking[spark.cleaner.referenceTracking] Spark property is enabled (i.e. `true`), `SparkContext` link:spark-service-contextcleaner.adoc#creating-instance[creates `ContextCleaner`] (as `_cleaner`) and link:spark-service-contextcleaner.adoc#start[started] immediately. Otherwise, `_cleaner` is empty.
+
+NOTE: link:spark-service-contextcleaner.adoc#spark_cleaner_referenceTracking[spark.cleaner.referenceTracking] Spark property is enabled by default.
 
 CAUTION: FIXME It'd be quite useful to have all the properties with their default values in `sc.getConf.toDebugString`, so when a configuration is not included but does change Spark runtime configuration, it should be added to `_conf`.
 
@@ -188,23 +213,38 @@ It <<setupAndStartListenerBus, registers user-defined listeners and starts `Spar
 
 link:spark-SparkListener.adoc#SparkListenerApplicationStart[SparkListenerApplicationStart] message is posted to link:spark-LiveListenerBus.adoc[LiveListenerBus] (using the internal `postApplicationStart` method).
 
-link:spark-taskscheduler.adoc#contract[`TaskScheduler` is notified that `SparkContext` has been started (using `postStartHook`)].
+[[postStartHook]]
+`TaskScheduler` link:spark-TaskScheduler.adoc#postStartHook[is notified that `SparkContext` is almost fully initialized].
 
-NOTE: `TaskScheduler.postStartHook` does nothing by default, but the link:spark-taskschedulerimpl.adoc#postStartHook[only implementation `TaskSchedulerImpl` comes with its own `postStartHook`] and blocks the current thread until a `SchedulerBackend` is ready.
+NOTE: link:spark-TaskScheduler.adoc#postStartHook[TaskScheduler.postStartHook] does nothing by default, but custom implementations offer more advanced features, i.e. `TaskSchedulerImpl` link:spark-taskschedulerimpl.adoc#postStartHook[blocks the current thread until `SchedulerBackend` is ready]. There is also `YarnClusterScheduler` for Spark on YARN in `cluster` deploy mode.
 
-link:spark-metrics.adoc#registerSource[`MetricsSystem` is requested to register] the following sources:
+=== [[registerSource]] Registering Metrics Sources
 
-1. link:spark-dagscheduler.adoc#metrics[DAGSchedulerSource]
-2. link:spark-blockmanager.adoc#metrics[BlockManagerSource]
-3. link:spark-dynamic-allocation.adoc#metrics[ExecutorAllocationManagerSource] (only if link:spark-dynamic-allocation.adoc#isDynamicAllocationEnabled[dynamic allocation is enabled]).
+`SparkContext` requests `MetricsSystem` to link:spark-MetricsSystem.adoc#registerSource[register metrics sources] for the following services:
 
-`ShutdownHookManager.addShutdownHook()` is called to do SparkContext's cleanup.
+. link:spark-dagscheduler.adoc#metricsSource[DAGScheduler]
+. link:spark-blockmanager-BlockManagerSource.adoc[BlockManager]
+. link:spark-ExecutorAllocationManager.adoc#executorAllocationManagerSource[ExecutorAllocationManager] (if link:spark-dynamic-allocation.adoc#isDynamicAllocationEnabled[dynamic allocation is enabled])
 
-CAUTION: FIXME What exactly does `ShutdownHookManager.addShutdownHook()` do?
+=== [[addShutdownHook]] Adding Shutdown Hook
+
+`SparkContext` adds a shutdown hook (using `ShutdownHookManager.addShutdownHook()`).
+
+You should see the following DEBUG message in the logs:
+
+```
+DEBUG Adding shutdown hook
+```
+
+CAUTION: FIXME ShutdownHookManager.addShutdownHook()
 
 Any non-fatal Exception leads to termination of the Spark context instance.
 
 CAUTION: FIXME What does `NonFatal` represent in Scala?
+
+CAUTION: FIXME Finish me
+
+=== [[nextShuffleId]][[nextRddId]] Initializing nextShuffleId and nextRddId Internal Counters
 
 `nextShuffleId` and `nextRddId` start with `0`.
 
@@ -222,7 +262,7 @@ createTaskScheduler(
   deployMode: String): (SchedulerBackend, TaskScheduler)
 ----
 
-The private `createTaskScheduler` is executed as part of link:spark-sparkcontext.adoc#creating-instance[creating an instance of SparkContext] to create link:spark-taskscheduler.adoc[TaskScheduler] and link:spark-scheduler-backends.adoc[SchedulerBackend] objects.
+The private `createTaskScheduler` is executed as part of link:spark-sparkcontext.adoc#creating-instance[creating an instance of SparkContext] to create link:spark-TaskScheduler.adoc[TaskScheduler] and link:spark-SchedulerBackend.adoc[SchedulerBackend] objects.
 
 It uses the link:spark-deployment-environments.adoc#master-urls[master URL] to select right implementations.
 
@@ -267,11 +307,11 @@ NOTE: `getClusterManager` is used to find a cluster manager for a master URL whe
 setupAndStartListenerBus(): Unit
 ----
 
-`setupAndStartListenerBus` is an internal method that reads link:spark-LiveListenerBus.adoc#spark_extraListeners[spark.extraListeners] setting from the current link:spark-configuration.adoc[SparkConf] to create and register link:spark-SparkListener.adoc#SparkListenerInterface[SparkListenerInterface] listeners.
+`setupAndStartListenerBus` is an internal method that reads link:spark-LiveListenerBus.adoc#spark_extraListeners[spark.extraListeners] setting from the current link:spark-SparkConf.adoc[SparkConf] to create and register link:spark-SparkListener.adoc#SparkListenerInterface[SparkListenerInterface] listeners.
 
 It expects that the class name represents a `SparkListenerInterface` listener with one of the following constructors (in this order):
 
-* a single-argument constructor that accepts link:spark-configuration.adoc[SparkConf]
+* a single-argument constructor that accepts link:spark-SparkConf.adoc[SparkConf]
 * a zero-argument constructor
 
 `setupAndStartListenerBus` link:spark-LiveListenerBus.adoc#ListenerBus-addListener[registers every listener class].
@@ -319,7 +359,7 @@ createSparkEnv(
 
 It calculates the number of cores to `1` for `local` master URL, the number of processors available for JVM for `*` or the exact number in the master URL, or `0` for the cluster master URLs.
 
-=== [[localHostName]] Utils.getCurrentUserName
+=== [[getCurrentUserName]] Utils.getCurrentUserName
 
 [source, scala]
 ----
@@ -340,7 +380,7 @@ NOTE: It is another place where Spark relies on Hadoop API for its operation.
 
 It starts by checking `SPARK_LOCAL_HOSTNAME` environment variable for the value. If it is not defined, it uses `SPARK_LOCAL_IP` to find the name (using `InetAddress.getByName`). If it is not defined either, it calls `InetAddress.getLocalHost` for the name.
 
-NOTE: `Utils.localHostName` is executed while link:spark-sparkcontext.adoc#creating-instance[SparkContext is being created].
+NOTE: `Utils.localHostName` is executed while link:spark-sparkcontext.adoc#creating-instance[`SparkContext` is created] and also to compute the default value of link:spark-driver.adoc#spark_driver_host[spark.driver.host Spark property].
 
 CAUTION: FIXME Review the rest.
 

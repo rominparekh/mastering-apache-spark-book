@@ -70,8 +70,8 @@ List<String> buildSparkSubmitArgs()
 `buildSparkSubmitArgs` uses a link:spark-submit-SparkSubmitOptionParser.adoc[SparkSubmitOptionParser] to add the command-line arguments that `spark-submit` recognizes (when it is executed later on and uses the very same `SparkSubmitOptionParser` parser to parse command-line arguments).
 
 .`SparkSubmitCommandBuilder` Properties and Corresponding `SparkSubmitOptionParser` Attributes
-[frame="topbot",options="header",width="100%"]
-|======================
+[options="header",width="100%"]
+|===
 | `SparkSubmitCommandBuilder` Property | `SparkSubmitOptionParser` Attribute
 | `verbose` | `VERBOSE`
 | `master` | `MASTER [master]`
@@ -86,7 +86,7 @@ List<String> buildSparkSubmitArgs()
 | `sparkArgs` | `sparkArgs` (passed straight through)
 | `appResource` | `appResource` (passed straight through)
 | `appArgs` | `appArgs` (passed straight through)
-|======================
+|===
 
 ==== [[getEffectiveConfig]] `getEffectiveConfig` Internal Method
 
@@ -127,8 +127,8 @@ boolean handle(String opt, String value)
 `OptionParser` comes with a custom `handle` callback (from the link:spark-submit-SparkSubmitOptionParser.adoc#callbacks[SparkSubmitOptionParser callbacks]).
 
 .`handle` Method
-[frame="topbot",options="header",width="100%"]
-|======================
+[options="header",width="100%"]
+|===
 | Command-Line Option | Property / Behaviour
 | `--master` | `master`
 | `--deploy-mode` | `deployMode`
@@ -145,7 +145,7 @@ It may also set `allowsMixedArguments` and `appResource` if the execution is for
 | `--help` \| `--usage-error` | Disables `isAppResourceReq` and adds itself to `sparkArgs`.
 | `--version` | Disables `isAppResourceReq` and adds itself to `sparkArgs`.
 | _anything else_ | Adds an element to `sparkArgs`
-|======================
+|===
 
 ==== [[OptionParser-handleUnknown]] OptionParser's `handleUnknown` Method
 

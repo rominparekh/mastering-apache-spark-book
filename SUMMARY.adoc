@@ -22,7 +22,7 @@
 .. link:spark-sql-StructField.adoc[StructField]
 .. link:spark-sql-DataType.adoc[Data Types]
 
-. link:spark-sql-operators.adoc[Dataset Operators]
+. link:spark-sql-dataset-operators.adoc[Dataset Operators]
 .. link:spark-sql-columns.adoc[Column Operators]
 .. link:spark-sql-functions.adoc[Standard Functions -- `functions` object]
 .. link:spark-sql-udfs.adoc[User-Defined Functions (UDFs)]
@@ -35,48 +35,54 @@
 . link:spark-sql-datasource-api.adoc[DataSource API -- Loading and Saving Datasets]
 .. link:spark-sql-dataframereader.adoc[DataFrameReader -- Reading from External Data Sources]
 .. link:spark-sql-dataframewriter.adoc[DataFrameWriter]
-.. link:spark-sql-datasource.adoc[DataSource]
+.. link:spark-sql-datasource.adoc[DataSource -- Pluggable Data Sources]
 .. link:spark-sql-DataSourceRegister.adoc[DataSourceRegister]
 ... link:spark-sql-CSVFileFormat.adoc[CSVFileFormat]
 ... link:spark-sql-ParquetFileFormat.adoc[ParquetFileFormat]
 .. link:spark-sql-datasource-custom-formats.adoc[Custom Formats]
 
+. link:spark-sql-BaseRelation.adoc[BaseRelation]
+
+. link:spark-sql-queryplanner.adoc[QueryPlanner -- From Logical to Physical Plans]
+
+. link:spark-sql-SparkPlanner.adoc[SparkPlanner -- Default Query Planner (with no Hive Support)]
+.. link:spark-sql-BasicOperators.adoc[BasicOperators]
+.. link:spark-sql-DataSourceStrategy.adoc[DataSourceStrategy]
+.. link:spark-sql-DDLStrategy.adoc[DDLStrategy]
+.. link:spark-sql-FileSourceStrategy.adoc[FileSourceStrategy]
+.. link:spark-sql-JoinSelection.adoc[JoinSelection]
+
 . link:spark-sql-catalyst-QueryPlan.adoc[Structured Query Plan]
-.. link:spark-sql-queryplanner.adoc[QueryPlanner -- Transforming Logical Plans to Physical Queries]
 .. link:spark-sql-query-execution.adoc[Query Execution]
-.. link:spark-sql-catalyst-LogicalPlan.adoc[Logical Query Plan]
-... link:spark-sql-logical-plan-LocalRelation.adoc[LocalRelation Logical Query Plan]
+... link:spark-sql-EnsureRequirements.adoc[EnsureRequirements Physical Plan Optimization]
+
+.. link:spark-sql-LogicalPlan.adoc[LogicalPlan -- Logical Query Plan]
+... link:spark-sql-AlterViewAsCommand.adoc[AlterViewAsCommand Runnable Command]
+... link:spark-sql-logical-plan-ClearCacheCommand.adoc[ClearCacheCommand Runnable Command]
+... link:spark-sql-CreateViewCommand.adoc[CreateViewCommand Runnable Command]
+... link:spark-sql-logical-plan-DeserializeToObject.adoc[DeserializeToObject Logical Operator]
+... link:spark-sql-ExplainCommand.adoc[ExplainCommand Logical Command]
+... link:spark-sql-logical-InMemoryRelation.adoc[InMemoryRelation Logical Operator]
+... link:spark-sql-Join.adoc[Join Logical Operator]
+... link:spark-sql-logical-plan-LocalRelation.adoc[LocalRelation Logical Operator]
+
 .. link:spark-sql-catalyst-analyzer.adoc[Logical Query Plan Analyzer]
 ... link:spark-sql-catalyst-analyzer-CheckAnalysis.adoc[CheckAnalysis]
-.. link:spark-sql-catalyst-SparkPlan.adoc[SparkPlan -- Physical Execution Plan]
-... link:spark-sql-spark-plan-LocalTableScanExec.adoc[LocalTableScanExec Physical Operator]
-... link:spark-sql-spark-plan-WindowExec.adoc[WindowExec Physical Operator]
+
+.. link:spark-sql-SparkPlan.adoc[SparkPlan -- Physical Execution Plan]
+... link:spark-sql-spark-plan-BroadcastHashJoinExec.adoc[BroadcastHashJoinExec Physical Operator]
+... link:spark-sql-spark-plan-BroadcastNestedLoopJoinExec.adoc[BroadcastNestedLoopJoinExec Physical Operator]
 ... link:spark-sql-spark-plan-CoalesceExec.adoc[CoalesceExec Physical Operator]
+... link:spark-sql-spark-plan-ExecutedCommandExec.adoc[ExecutedCommandExec Physical Operator]
+... link:spark-sql-spark-plan-InMemoryTableScanExec.adoc[InMemoryTableScanExec Physical Operator]
+... link:spark-sql-spark-plan-LocalTableScanExec.adoc[LocalTableScanExec Physical Operator]
+... link:spark-sql-spark-plan-ShuffleExchange.adoc[ShuffleExchange Physical Operator]
+... link:spark-sql-spark-plan-WindowExec.adoc[WindowExec Physical Operator]
+
+. link:spark-sql-ExchangeCoordinator.adoc[ExchangeCoordinator and Adaptive Query Execution]
+. link:spark-sql-ShuffledRowRDD.adoc[ShuffledRowRDD]
 
 . link:spark-sql-debugging-execution.adoc[Debugging Query Execution]
-
-. link:spark-sql-structured-streaming.adoc[Structured Streaming -- Streaming Datasets]
-.. link:spark-sql-streaming-DataStreamReader.adoc[DataStreamReader]
-.. link:spark-sql-streaming-DataStreamWriter.adoc[DataStreamWriter]
-.. link:spark-sql-streaming-source.adoc[Streaming Sources]
-... link:spark-sql-streaming-FileStreamSource.adoc[FileStreamSource]
-... link:spark-sql-streaming-KafkaSource.adoc[KafkaSource]
-... link:spark-sql-streaming-TextSocketSource.adoc[TextSocketSource]
-... link:spark-sql-streaming-MemoryStream.adoc[MemoryStream]
-.. link:spark-sql-streaming-sink.adoc[Streaming Sinks]
-... link:spark-sql-streaming-ConsoleSink.adoc[ConsoleSink]
-... link:spark-sql-streaming-ForeachSink.adoc[ForeachSink]
-.. link:spark-sql-streaming-StreamSourceProvider.adoc[`StreamSourceProvider` -- Streaming Source Provider]
-... link:spark-sql-streaming-KafkaSourceProvider.adoc[KafkaSourceProvider]
-... link:spark-sql-streaming-TextSocketSourceProvider.adoc[TextSocketSourceProvider]
-.. link:spark-sql-streaming-StreamSinkProvider.adoc[StreamSinkProvider]
-.. link:spark-sql-streaming-StreamingQueryManager.adoc[StreamingQueryManager]
-.. link:spark-sql-streaming-StreamingQuery.adoc[StreamingQuery]
-.. link:spark-sql-streaming-trigger.adoc[Trigger]
-.. link:spark-sql-streaming-streamexecution.adoc[StreamExecution]
-.. link:spark-sql-streaming-streamingrelation.adoc[StreamingRelation]
-.. link:spark-sql-streaming-StreamingQueryListenerBus.adoc[StreamingQueryListenerBus]
-.. link:spark-sql-streaming-MemoryPlan.adoc[MemoryPlan Logical Query Plan]
 
 . link:spark-sql-dataset-rdd.adoc[Datasets vs DataFrames vs RDDs]
 
@@ -85,7 +91,9 @@
 . link:spark-sql-ExternalCatalog.adoc[ExternalCatalog -- System Catalog of Permanent Entities]
 
 . link:spark-sql-sessionstate.adoc[SessionState]
+. link:spark-sql-SessionCatalog.adoc[SessionCatalog]
 . link:spark-sql-sql-parsers.adoc[SQL Parser Framework]
+.. link:spark-sql-SparkSqlAstBuilder.adoc[SparkSqlAstBuilder]
 . link:spark-sql-SQLExecution.adoc[SQLExecution Helper Object]
 
 . link:spark-sql-catalyst-Optimizer.adoc[Logical Query Plan Optimizer]
@@ -107,7 +115,9 @@
 
 . link:spark-sql-hive-integration.adoc[Hive Integration]
 .. link:spark-sql-spark-sql.adoc[Spark SQL CLI - spark-sql]
-. link:spark-sql-CacheManager.adoc[CacheManager]
+.. link:spark-sql-DataSinks.adoc[DataSinks Strategy]
+
+. link:spark-sql-CacheManager.adoc[CacheManager -- In-Memory Cache for Cached Tables]
 
 . link:spark-sql-thrift-server.adoc[Thrift JDBC/ODBC Server -- Spark Thrift Server (STS)]
 .. link:spark-sql-thriftserver-SparkSQLEnv.adoc[SparkSQLEnv]
@@ -127,6 +137,7 @@
 . link:spark-mllib/spark-mllib.adoc[Spark MLlib -- Machine Learning in Spark]
 . link:spark-mllib/spark-mllib-pipelines.adoc[ML Pipelines and PipelineStages (spark.ml)]
 .. link:spark-mllib/spark-mllib-transformers.adoc[ML Pipeline Components -- Transformers]
+... link:spark-mllib/spark-mllib-transformers-Tokenizer.adoc[Tokenizer]
 .. link:spark-mllib/spark-mllib-estimators.adoc[ML Pipeline Components -- Estimators]
 .. link:spark-mllib/spark-mllib-models.adoc[ML Pipeline Models]
 .. link:spark-mllib/spark-mllib-evaluators.adoc[Evaluators]
@@ -141,6 +152,10 @@
 . link:spark-mllib/spark-mllib-streaming.adoc[Streaming MLlib]
 . link:spark-mllib/spark-mllib-GeneralizedLinearRegression.adoc[GeneralizedLinearRegression]
 
+=== Structured Streaming
+
+. link:spark-structured-streaming.adoc[Spark Structured Streaming -- Streaming Datasets]
+
 === Spark Streaming
 
 . link:spark-streaming/spark-streaming.adoc[Spark Streaming]
@@ -149,6 +164,7 @@
 .. link:spark-streaming/spark-streaming-windowedoperators.adoc[Windowed Operators]
 .. link:spark-streaming/spark-streaming-operators-saveas.adoc[SaveAs Operators]
 .. link:spark-streaming/spark-streaming-operators-stateful.adoc[Stateful Operators]
+.. link:spark-streaming/spark-streaming-PairDStreamFunctions.adoc[PairDStreamFunctions]
 
 . link:spark-streaming/spark-streaming-webui.adoc[web UI and Streaming Statistics Page]
 . link:spark-streaming/spark-streaming-streaminglisteners.adoc[Streaming Listeners]
@@ -191,38 +207,39 @@
 
 === Spark Core / Tools
 
-. link:spark-shell.adoc[Spark Shell -- `spark-shell` shell script]
+. link:spark-shell.adoc[Spark Shell -- spark-shell shell script]
 
 . link:spark-webui.adoc[Web UI -- Spark Application's Web Console]
 .. link:spark-webui-jobs.adoc[Jobs Tab]
-.. link:spark-webui-stages.adoc[Stages Tab]
+.. link:spark-webui-StagesTab.adoc[Stages Tab -- Stages for All Jobs]
 ... link:spark-webui-AllStagesPage.adoc[Stages for All Jobs]
 ... link:spark-webui-StagePage.adoc[Stage Details]
 ... link:spark-webui-PoolPage.adoc[Pool Details]
 
 .. link:spark-webui-storage.adoc[Storage Tab]
+... link:spark-webui-BlockStatusListener.adoc[BlockStatusListener Spark Listener]
+
 .. link:spark-webui-environment.adoc[Environment Tab]
-... link:spark-webui-EnvironmentListener.adoc[`EnvironmentListener` Spark Listener]
+... link:spark-webui-EnvironmentListener.adoc[EnvironmentListener Spark Listener]
 
 .. link:spark-webui-executors.adoc[Executors Tab]
-... link:spark-webui-executors-ExecutorsListener.adoc[`ExecutorsListener` Spark Listener]
+... link:spark-webui-executors-ExecutorsListener.adoc[ExecutorsListener Spark Listener]
 
 .. link:spark-webui-sql.adoc[SQL Tab]
-... link:spark-webui-SQLListener.adoc[`SQLListener` Spark Listener]
+... link:spark-webui-SQLListener.adoc[SQLListener Spark Listener]
 
-.. link:spark-webui-JobProgressListener.adoc[`JobProgressListener` Spark Listener]
-.. link:spark-webui-StorageStatusListener.adoc[`StorageStatusListener` Spark Listener]
-.. link:spark-webui-StorageListener.adoc[`StorageListener` Spark Listener]
-.. link:spark-webui-RDDOperationGraphListener.adoc[`RDDOperationGraphListener` Spark Listener]
-.. link:spark-webui-BlockStatusListener.adoc[`BlockStatusListener` Spark Listener]
+.. link:spark-webui-JobProgressListener.adoc[JobProgressListener Spark Listener]
+.. link:spark-webui-StorageStatusListener.adoc[StorageStatusListener Spark Listener]
+.. link:spark-webui-StorageListener.adoc[StorageListener -- Spark Listener for Tracking Persistence Status of RDD Blocks]
+.. link:spark-webui-RDDOperationGraphListener.adoc[RDDOperationGraphListener Spark Listener]
 .. link:spark-webui-SparkUI.adoc[SparkUI]
 
-. link:spark-submit.adoc[Spark Submit -- `spark-submit` shell script]
+. link:spark-submit.adoc[Spark Submit -- spark-submit shell script]
 .. link:spark-submit-SparkSubmitArguments.adoc[SparkSubmitArguments]
-.. link:spark-submit-SparkSubmitOptionParser.adoc[SparkSubmitOptionParser -- ``spark-submit``'s Command-Line Parser]
+.. link:spark-submit-SparkSubmitOptionParser.adoc[SparkSubmitOptionParser -- spark-submit's Command-Line Parser]
 .. link:spark-submit-SparkSubmitCommandBuilder.adoc[`SparkSubmitCommandBuilder` Command Builder]
 
-. link:spark-class.adoc[`spark-class` shell script]
+. link:spark-class.adoc[spark-class shell script]
 .. link:spark-AbstractCommandBuilder.adoc[AbstractCommandBuilder]
 
 . link:spark-SparkLauncher.adoc[SparkLauncher -- Launching Spark Applications Programmatically]
@@ -231,8 +248,8 @@
 
 . link:spark-architecture.adoc[Spark Architecture]
 . link:spark-driver.adoc[Driver]
-. link:spark-executor.adoc[Executors]
-.. link:spark-executor-taskrunner.adoc[TaskRunner]
+. link:spark-Executor.adoc[Executor]
+.. link:spark-executor-TaskRunner.adoc[TaskRunner]
 .. link:spark-executor-ExecutorSource.adoc[ExecutorSource]
 . link:spark-master.adoc[Master]
 . link:spark-workers.adoc[Workers]
@@ -240,40 +257,58 @@
 === Spark Core / RDD
 
 . link:spark-anatomy-spark-application.adoc[Anatomy of Spark Application]
-. link:spark-configuration.adoc[SparkConf -- Programmable Configuration for Spark Applications]
+. link:spark-SparkConf.adoc[SparkConf -- Programmable Configuration for Spark Applications]
 .. link:spark-properties.adoc[Spark Properties and spark-defaults.conf Properties File]
 .. link:spark-deploy-mode.adoc[Deploy Mode]
 . link:spark-sparkcontext.adoc[SparkContext]
-.. link:spark-sparkcontext-HeartbeatReceiver.adoc[HeartbeatReceiver RPC Endpoint]
+.. link:spark-HeartbeatReceiver.adoc[HeartbeatReceiver RPC Endpoint]
 .. link:spark-sparkcontext-creating-instance-internals.adoc[Inside Creating SparkContext]
 .. link:spark-sparkcontext-ConsoleProgressBar.adoc[ConsoleProgressBar]
+.. link:spark-sparkcontext-SparkStatusTracker.adoc[SparkStatusTracker]
 .. link:spark-sparkcontext-local-properties.adoc[Local Properties -- Creating Logical Job Groups]
 
-. link:spark-rdd.adoc[RDD - Resilient Distributed Dataset]
+. link:spark-rdd.adoc[RDD -- Resilient Distributed Dataset]
+.. link:spark-rdd-lineage.adoc[RDD Lineage -- Logical Execution Plan]
+.. link:spark-TaskLocation.adoc[TaskLocation]
+.. link:spark-rdd-parallelcollectionrdd.adoc[ParallelCollectionRDD]
+.. link:spark-rdd-mappartitionsrdd.adoc[MapPartitionsRDD]
+.. link:spark-rdd-OrderedRDDFunctions.adoc[OrderedRDDFunctions]
+.. link:spark-rdd-cogroupedrdd.adoc[CoGroupedRDD]
+.. link:spark-rdd-SubtractedRDD.adoc[SubtractedRDD]
+.. link:spark-rdd-hadooprdd.adoc[HadoopRDD]
+.. link:spark-rdd-NewHadoopRDD.adoc[NewHadoopRDD]
+.. link:spark-rdd-ShuffledRDD.adoc[ShuffledRDD]
+.. link:spark-rdd-blockrdd.adoc[BlockRDD]
 
-.. link:spark-rdd-operations.adoc[Operators]
-... link:spark-rdd-transformations.adoc[Transformations]
-... link:spark-rdd-actions.adoc[Actions]
-... link:spark-rdd-lineage.adoc[RDD Lineage -- Logical Execution Plan]
+. link:spark-rdd-operations.adoc[Operators]
+.. link:spark-rdd-transformations.adoc[Transformations]
+... link:spark-rdd-PairRDDFunctions.adoc[PairRDDFunctions]
+.. link:spark-rdd-actions.adoc[Actions]
 
-.. link:spark-rdd-partitions.adoc[Partitions and Partitioning]
-.. link:spark-rdd-shuffle.adoc[Shuffling]
-.. link:spark-rdd-checkpointing.adoc[Checkpointing]
-.. link:spark-rdd-dependencies.adoc[Dependencies]
-.. Types of RDDs
-... link:spark-rdd-parallelcollectionrdd.adoc[ParallelCollectionRDD]
-... link:spark-rdd-mappartitionsrdd.adoc[MapPartitionsRDD]
-... link:spark-rdd-pairrdd-functions.adoc[PairRDDFunctions]
-... link:spark-rdd-cogroupedrdd.adoc[CoGroupedRDD]
-... link:spark-rdd-hadooprdd.adoc[HadoopRDD]
-... link:spark-rdd-shuffledrdd.adoc[ShuffledRDD]
-... link:spark-rdd-blockrdd.adoc[BlockRDD]
+. link:spark-rdd-caching.adoc[Caching and Persistence]
+.. link:spark-rdd-StorageLevel.adoc[StorageLevel]
+
+. link:spark-rdd-partitions.adoc[Partitions and Partitioning]
+.. link:spark-rdd-Partition.adoc[Partition]
+.. link:spark-rdd-Partitioner.adoc[Partitioner]
+... link:spark-rdd-HashPartitioner.adoc[HashPartitioner]
+
+. link:spark-rdd-shuffle.adoc[Shuffling]
+
+. link:spark-rdd-checkpointing.adoc[Checkpointing]
+.. link:spark-rdd-CheckpointRDD.adoc[CheckpointRDD]
+
+. link:spark-rdd-dependencies.adoc[RDD Dependencies]
+.. link:spark-rdd-NarrowDependency.adoc[NarrowDependency -- Narrow Dependencies]
+.. link:spark-rdd-ShuffleDependency.adoc[ShuffleDependency -- Shuffle Dependencies]
+
+. link:spark-Aggregator.adoc[Map/Reduce-side Aggregator]
 
 === Spark Core / Optimizations
 
-. link:spark-rdd-caching.adoc[Caching and Persistence]
 . link:spark-broadcast.adoc[Broadcast variables]
 . link:spark-accumulators.adoc[Accumulators]
+.. link:spark-AccumulatorContext.adoc[AccumulatorContext]
 
 === Spark Core / Services
 
@@ -282,74 +317,146 @@
 .. link:spark-UnifiedMemoryManager.adoc[UnifiedMemoryManager]
 
 . link:spark-sparkenv.adoc[SparkEnv -- Spark Runtime Environment]
-. link:spark-dagscheduler.adoc[DAGScheduler]
-.. link:spark-dagscheduler-jobs.adoc[Jobs]
-.. link:spark-dagscheduler-stages.adoc[Stages]
-... link:spark-dagscheduler-ShuffleMapStage.adoc[ShuffleMapStage -- Intermediate Stage in Job]
-... link:spark-dagscheduler-ResultStage.adoc[ResultStage -- Final Stage in Job]
-.. link:spark-dagscheduler-DAGSchedulerEventProcessLoop.adoc[DAGSchedulerEventProcessLoop -- dag-scheduler-event-loop DAGScheduler Event Bus]
-.. link:spark-dagscheduler-JobListener.adoc[JobListener and JobWaiter]
 
-. link:spark-taskscheduler.adoc[Task Scheduler]
+. link:spark-dagscheduler.adoc[DAGScheduler -- Stage-Oriented Scheduler]
+.. link:spark-dagscheduler-jobs.adoc[Jobs]
+.. link:spark-DAGScheduler-Stage.adoc[Stage -- Physical Unit Of Execution]
+... link:spark-dagscheduler-ShuffleMapStage.adoc[ShuffleMapStage -- Intermediate Stage in Execution DAG]
+... link:spark-dagscheduler-ResultStage.adoc[ResultStage -- Final Stage in Job]
+... link:spark-dagscheduler-StageInfo.adoc[StageInfo]
+
+.. link:spark-dagscheduler-DAGSchedulerEventProcessLoop.adoc[DAGScheduler Event Bus]
+.. link:spark-dagscheduler-JobListener.adoc[JobListener]
+... link:spark-dagscheduler-JobWaiter.adoc[JobWaiter]
+
+. link:spark-TaskScheduler.adoc[TaskScheduler -- Spark Scheduler]
+
 .. link:spark-taskscheduler-tasks.adoc[Tasks]
-.. link:spark-taskscheduler-tasksets.adoc[TaskSets]
-.. link:spark-taskscheduler-schedulable.adoc[Schedulable]
-... link:spark-tasksetmanager.adoc[TaskSetManager]
+... link:spark-taskscheduler-ShuffleMapTask.adoc[ShuffleMapTask -- Task for ShuffleMapStage]
+... link:spark-taskscheduler-ResultTask.adoc[ResultTask]
+
+.. link:spark-TaskDescription.adoc[TaskDescription]
+
+.. link:spark-TaskRunner-FetchFailedException.adoc[FetchFailedException]
+
+.. link:spark-MapStatus.adoc[MapStatus -- Shuffle Map Output Status]
+
+.. link:spark-taskscheduler-tasksets.adoc[TaskSet -- Set of Tasks for Stage]
+
+.. link:spark-TaskSetManager.adoc[TaskSetManager]
+... link:spark-taskscheduler-schedulable.adoc[Schedulable]
 ... link:spark-taskscheduler-pool.adoc[Schedulable Pool]
 ... link:spark-taskscheduler-schedulablebuilders.adoc[Schedulable Builders]
 .... link:spark-taskscheduler-FIFOSchedulableBuilder.adoc[FIFOSchedulableBuilder]
 .... link:spark-taskscheduler-FairSchedulableBuilder.adoc[FairSchedulableBuilder]
 ... link:spark-taskscheduler-schedulingmode.adoc[Scheduling Mode -- `spark.scheduler.mode` Spark Property]
+... link:spark-TaskInfo.adoc[TaskInfo]
+
 .. link:spark-taskschedulerimpl.adoc[TaskSchedulerImpl -- Default TaskScheduler]
 ... link:spark-taskschedulerimpl-speculative-execution.adoc[Speculative Execution of Tasks]
 ... link:spark-taskschedulerimpl-TaskResultGetter.adoc[TaskResultGetter]
+
 .. link:spark-taskscheduler-taskcontext.adoc[TaskContext]
+... link:spark-taskscheduler-TaskContextImpl.adoc[TaskContextImpl]
+
 .. link:spark-taskscheduler-TaskResult.adoc[TaskResults -- DirectTaskResult and IndirectTaskResult]
+
 .. link:spark-taskscheduler-taskmemorymanager.adoc[TaskMemoryManager]
 ... link:spark-MemoryConsumer.adoc[MemoryConsumer]
+
 .. link:spark-taskscheduler-taskmetrics.adoc[TaskMetrics]
-.. link:spark-taskscheduler-TaskSetBlacklist.adoc[`TaskSetBlacklist` -- Blacklisting Executors and Nodes For TaskSet]
+... link:spark-taskmetrics-ShuffleWriteMetrics.adoc[ShuffleWriteMetrics]
 
-. link:spark-scheduler-backends.adoc[Scheduler Backend]
-.. link:spark-scheduler-backends-CoarseGrainedSchedulerBackend.adoc[CoarseGrainedSchedulerBackend]
+.. link:spark-taskscheduler-TaskSetBlacklist.adoc[TaskSetBlacklist -- Blacklisting Executors and Nodes For TaskSet]
 
-. link:spark-executor-backends.adoc[Executor Backend]
+. link:spark-SchedulerBackend.adoc[SchedulerBackend -- Pluggable Scheduler Backends]
+.. link:spark-CoarseGrainedSchedulerBackend.adoc[CoarseGrainedSchedulerBackend]
+... link:spark-CoarseGrainedSchedulerBackend-DriverEndpoint.adoc[DriverEndpoint -- CoarseGrainedSchedulerBackend RPC Endpoint]
+
+. link:spark-ExecutorBackend.adoc[ExecutorBackend -- Pluggable Executor Backends]
 .. link:spark-executor-backends-CoarseGrainedExecutorBackend.adoc[CoarseGrainedExecutorBackend]
+.. link:spark-executor-backends-MesosExecutorBackend.adoc[MesosExecutorBackend]
 
-. link:spark-blockmanager.adoc[BlockManager]
+. link:spark-blockmanager.adoc[BlockManager -- Key-Value Store for Blocks]
 .. link:spark-MemoryStore.adoc[MemoryStore]
 .. link:spark-DiskStore.adoc[DiskStore]
 .. link:spark-blockdatamanager.adoc[BlockDataManager]
 .. link:spark-shuffleclient.adoc[ShuffleClient]
-.. link:spark-blocktransferservice.adoc[BlockTransferService]
+.. link:spark-blocktransferservice.adoc[BlockTransferService -- Pluggable Block Transfers]
+... link:spark-NettyBlockTransferService.adoc[NettyBlockTransferService -- Netty-Based BlockTransferService]
+... link:spark-NettyBlockRpcServer.adoc[NettyBlockRpcServer]
 .. link:spark-BlockManagerMaster.adoc[BlockManagerMaster -- BlockManager for Driver]
+... link:spark-blockmanager-BlockManagerMasterEndpoint.adoc[BlockManagerMasterEndpoint -- BlockManagerMaster RPC Endpoint]
+.. link:spark-DiskBlockManager.adoc[DiskBlockManager]
 .. link:spark-BlockInfoManager.adoc[BlockInfoManager]
 ... link:spark-BlockInfo.adoc[BlockInfo]
+.. link:spark-blockmanager-BlockManagerSlaveEndpoint.adoc[BlockManagerSlaveEndpoint]
+.. link:spark-blockmanager-DiskBlockObjectWriter.adoc[DiskBlockObjectWriter]
+.. link:spark-blockmanager-BlockManagerSource.adoc[BlockManagerSource -- Metrics Source for BlockManager]
+.. link:spark-blockmanager-StorageStatus.adoc[StorageStatus]
+
+. link:spark-service-mapoutputtracker.adoc[MapOutputTracker -- Shuffle Map Output Registry]
+.. link:spark-service-MapOutputTrackerMaster.adoc[MapOutputTrackerMaster -- MapOutputTracker For Driver]
+... link:spark-service-MapOutputTrackerMasterEndpoint.adoc[MapOutputTrackerMasterEndpoint]
+.. link:spark-service-MapOutputTrackerWorker.adoc[MapOutputTrackerWorker -- MapOutputTracker for Executors]
+
+. link:spark-ShuffleManager.adoc[ShuffleManager -- Pluggable Shuffle Systems]
+.. link:spark-SortShuffleManager.adoc[SortShuffleManager -- The Default Shuffle System]
+.. link:spark-ExternalShuffleService.adoc[ExternalShuffleService]
+.. link:spark-OneForOneStreamManager.adoc[OneForOneStreamManager]
+
+.. link:spark-ShuffleBlockResolver.adoc[ShuffleBlockResolver]
+... link:spark-IndexShuffleBlockResolver.adoc[IndexShuffleBlockResolver]
+
+.. link:spark-ShuffleWriter.adoc[ShuffleWriter]
+... link:spark-BypassMergeSortShuffleWriter.adoc[BypassMergeSortShuffleWriter]
+... link:spark-SortShuffleWriter.adoc[SortShuffleWriter]
+... link:spark-UnsafeShuffleWriter.adoc[UnsafeShuffleWriter -- ShuffleWriter for SerializedShuffleHandle]
+
+.. link:spark-BaseShuffleHandle.adoc[BaseShuffleHandle -- Fallback Shuffle Handle]
+.. link:spark-BypassMergeSortShuffleHandle.adoc[BypassMergeSortShuffleHandle -- Marker Interface for Bypass Merge Sort Shuffle Handles]
+.. link:spark-SerializedShuffleHandle.adoc[SerializedShuffleHandle -- Marker Interface for Serialized Shuffle Handles]
+
+.. link:spark-ShuffleReader.adoc[ShuffleReader]
+... link:spark-BlockStoreShuffleReader.adoc[BlockStoreShuffleReader]
+
+.. link:spark-ShuffleBlockFetcherIterator.adoc[ShuffleBlockFetcherIterator]
+.. link:spark-ShuffleExternalSorter.adoc[ShuffleExternalSorter -- Cache-Efficient Sorter]
+.. link:spark-ExternalSorter.adoc[ExternalSorter]
+
+. link:spark-serialization.adoc[Serialization]
+.. link:spark-Serializer.adoc[Serializer -- Task SerDe]
+.. link:spark-SerializerInstance.adoc[SerializerInstance]
+.. link:spark-SerializationStream.adoc[SerializationStream]
+.. link:spark-DeserializationStream.adoc[DeserializationStream]
+
+. link:spark-ExternalClusterManager.adoc[ExternalClusterManager -- Pluggable Cluster Managers]
+
+. link:spark-service-broadcastmanager.adoc[BroadcastManager]
+.. link:spark-BroadcastFactory.adoc[BroadcastFactory -- Pluggable Broadcast Variable Factories]
+... link:spark-TorrentBroadcastFactory.adoc[TorrentBroadcastFactory]
+... link:spark-TorrentBroadcast.adoc[TorrentBroadcast]
+.. link:spark-CompressionCodec.adoc[CompressionCodec]
+
+. link:spark-service-contextcleaner.adoc[ContextCleaner -- Spark Application Garbage Collector]
+.. link:spark-CleanerListener.adoc[CleanerListener]
 
 . link:spark-dynamic-allocation.adoc[Dynamic Allocation (of Executors)]
-.. link:spark-service-executor-allocation-manager.adoc[ExecutorAllocationManager -- Allocation Manager for Spark Core]
+.. link:spark-ExecutorAllocationManager.adoc[ExecutorAllocationManager -- Allocation Manager for Spark Core]
 .. link:spark-service-ExecutorAllocationClient.adoc[ExecutorAllocationClient]
 .. link:spark-service-ExecutorAllocationListener.adoc[ExecutorAllocationListener]
 .. link:spark-service-ExecutorAllocationManagerSource.adoc[ExecutorAllocationManagerSource]
 
-. link:spark-shuffle-manager.adoc[Shuffle Manager]
-.. link:spark-ExternalShuffleService.adoc[ExternalShuffleService]
-
-. link:spark-ExternalClusterManager.adoc[ExternalClusterManager -- Pluggable Cluster Managers]
-
 . link:spark-http-file-server.adoc[HTTP File Server]
-. link:spark-service-broadcastmanager.adoc[Broadcast Manager]
-
 . link:spark-data-locality.adoc[Data Locality]
 . link:spark-cachemanager.adoc[Cache Manager]
-. link:spark-akka-netty.adoc[Spark, Akka and Netty]
 . link:spark-service-outputcommitcoordinator.adoc[OutputCommitCoordinator]
-. link:spark-rpc.adoc[RPC Environment (RpcEnv)]
-.. link:spark-rpc-netty.adoc[Netty-based RpcEnv]
-. link:spark-service-contextcleaner.adoc[ContextCleaner]
 
-. link:spark-service-mapoutputtracker.adoc[MapOutputTracker]
-.. link:spark-service-MapOutputTrackerMaster.adoc[MapOutputTrackerMaster]
+. link:spark-rpc.adoc[RpcEnv -- RPC Environment]
+.. link:spark-rpc-RpcEndpoint.adoc[RpcEndpoint]
+.. link:spark-RpcEndpointRef.adoc[RpcEndpointRef]
+.. link:spark-RpcEnvFactory.adoc[RpcEnvFactory]
+.. link:spark-rpc-netty.adoc[Netty-based RpcEnv]
 
 . link:spark-TransportConf.adoc[TransportConf -- Transport Configuration]
 
@@ -357,6 +464,8 @@
 
 . link:spark-deployment-environments.adoc[Deployment Environments -- Run Modes]
 . link:spark-local.adoc[Spark local (pseudo-cluster)]
+.. link:spark-LocalSchedulerBackend.adoc[LocalSchedulerBackend]
+.. link:spark-LocalEndpoint.adoc[LocalEndpoint]
 . link:spark-cluster.adoc[Spark on cluster]
 
 === Spark on YARN
@@ -418,8 +527,7 @@
 
 . link:spark-data-sources.adoc[Data Sources in Spark]
 . link:spark-io.adoc[Using Input and Output (I/O)]
-.. link:spark-parquet.adoc[Spark and Parquet]
-.. link:spark-serialization.adoc[Serialization]
+.. link:spark-parquet.adoc[Parquet]
 . link:spark-cassandra.adoc[Spark and Cassandra]
 . link:spark-kafka.adoc[Spark and Kafka]
 . link:spark-connectors-couchbase.adoc[Couchbase Spark Connector]
@@ -441,15 +549,20 @@
 
 . link:spark-logging.adoc[Logging]
 . link:spark-tuning.adoc[Performance Tuning]
-. link:spark-metrics.adoc[Spark Metrics System]
-.. link:spark-metrics-MetricsConfig.adoc[`MetricsConfig` -- Metrics System Configuration]
-.. link:spark-metrics-Source.adoc[Metrics Source]
 
-. link:spark-SparkListener.adoc[Spark Listeners -- Intercepting Events from Spark Scheduler]
+. link:spark-MetricsSystem.adoc[MetricsSystem]
+.. link:spark-metrics-MetricsConfig.adoc[MetricsConfig -- Metrics System Configuration]
+.. link:spark-metrics-Source.adoc[Metrics Source]
+.. link:spark-metrics-Sink.adoc[Metrics Sink]
+
+. link:spark-SparkListener.adoc[SparkListener -- Intercepting Events from Spark Scheduler]
 .. link:spark-LiveListenerBus.adoc[LiveListenerBus]
 .. link:spark-ReplayListenerBus.adoc[ReplayListenerBus]
-.. link:spark-scheduler-listeners-eventlogginglistener.adoc[EventLoggingListener -- Event Logging]
+.. link:spark-SparkListenerBus.adoc[SparkListenerBus -- Internal Contract for Spark Event Buses]
+.. link:spark-scheduler-listeners-eventlogginglistener.adoc[EventLoggingListener -- Spark Listener for Persisting Events]
 .. link:spark-scheduler-listeners-statsreportlistener.adoc[StatsReportListener -- Logging Summary Statistics]
+
+. link:spark-JsonProtocol.adoc[JsonProtocol]
 
 . link:spark-debugging.adoc[Debugging Spark using sbt]
 
@@ -457,6 +570,7 @@
 
 . link:varia/spark-building-from-sources.adoc[Building Apache Spark from Sources]
 . link:varia/spark-hadoop.adoc[Spark and Hadoop]
+.. link:spark-SparkHadoopUtil.adoc[SparkHadoopUtil]
 . link:varia/spark-inmemory-filesystems.adoc[Spark and software in-memory file systems]
 . link:varia/spark-others.adoc[Spark and The Others]
 . link:varia/spark-deeplearning.adoc[Distributed Deep Learning on Spark]
@@ -473,7 +587,7 @@
 . link:spark-tips-and-tricks.adoc[Spark Tips and Tricks]
 . link:spark-tips-and-tricks-access-private-members-spark-shell.adoc[Access private members in Scala in Spark shell]
 . link:spark-tips-and-tricks-sparkexception-task-not-serializable.adoc[SparkException: Task not serializable]
-. link:spark-tips-and-tricks-running-spark-windows.adoc[Running Spark on Windows]
+. link:spark-tips-and-tricks-running-spark-windows.adoc[Running Spark Applications on Windows]
 
 === Exercises
 

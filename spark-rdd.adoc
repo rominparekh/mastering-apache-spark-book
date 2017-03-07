@@ -1,21 +1,19 @@
-== RDD -- Resilient Distributed Dataset
+== [[RDD]] RDD -- Resilient Distributed Dataset
 
-=== [[introduction]] Introduction
+*Resilient Distributed Dataset* (aka *RDD*) is the primary data abstraction in Apache Spark and the core of Spark (that I often refer to as "Spark Core").
 
 .The origins of RDD
 ****
-The original paper that gave birth to the concept of RDD is https://www.cs.berkeley.edu/~matei/papers/2012/nsdi_spark.pdf[Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory Cluster Computing] by Matei Zaharia, et al.
+The original paper that gave birth to the concept of RDD is https://cs.stanford.edu/~matei/papers/2012/nsdi_spark.pdf[Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory Cluster Computing] by Matei Zaharia, et al.
 ****
 
-*Resilient Distributed Dataset (RDD)* is the primary data abstraction in Apache Spark and the core of Spark (that many often refer to as *Spark Core*).
+A RDD is a resilient and distributed collection of records spread over <<getPartitions, one or many partitions>>.
 
-A RDD is a resilient and distributed collection of records. One could compare RDD to a Scala collection (that sits on a single JVM) to its distributed variant (that sits on many JVMs, possibly on separate nodes in a cluster).
+NOTE: One could compare RDDs to collections in Scala, i.e. a RDD is computed on many JVMs while a Scala collection lives on a single JVM.
 
-TIP: RDD is the bread and butter of Spark, and mastering the concept is of utmost importance to become a Spark pro. _And you wanna be a Spark pro, don't you?_
+Using RDD Spark hides data partitioning and so distribution that in turn allowed them to design parallel computational framework with a higher-level programming interface (API) for four mainstream programming languages.
 
-With RDD the creators of Spark managed to hide data partitioning and so distribution that in turn allowed them to design parallel computational framework with a higher-level programming interface (API) for four mainstream programming languages.
-
-Learning about RDD by its name:
+The features of RDDs (decomposing the name):
 
 * *Resilient*, i.e. fault-tolerant with the help of <<lineage, RDD lineage graph>> and so able to recompute missing or damaged partitions due to node failures.
 * *Distributed* with data residing on multiple nodes in a link:spark-cluster.adoc[cluster].
@@ -28,10 +26,9 @@ From the scaladoc of http://spark.apache.org/docs/latest/api/scala/index.html#or
 
 > A Resilient Distributed Dataset (RDD), the basic abstraction in Spark. Represents an immutable, partitioned collection of elements that can be operated on in parallel.
 
-From the original paper about RDD - https://www.cs.berkeley.edu/~matei/papers/2012/nsdi_spark.pdf[Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory Cluster Computing]:
+From the original paper about RDD - https://cs.stanford.edu/~matei/papers/2012/nsdi_spark.pdf[Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory Cluster Computing]:
 
-> Resilient Distributed Datasets (RDDs) are a distributed memory abstraction that lets programmers perform in-memory computations on large clusters in a
-fault-tolerant manner.
+> Resilient Distributed Datasets (RDDs) are a distributed memory abstraction that lets programmers perform in-memory computations on large clusters in a fault-tolerant manner.
 
 Beside the above traits (that are directly embedded in the name of the data abstraction - RDD) it has the following additional traits:
 
@@ -40,15 +37,18 @@ Beside the above traits (that are directly embedded in the name of the data abst
 * *Lazy evaluated*, i.e. the data inside RDD is not available or transformed until an action is executed that triggers the execution.
 * *Cacheable*, i.e. you can hold all the data in a persistent "storage" like memory (default and the most preferred) or disk (the least preferred due to access speed).
 * *Parallel*, i.e. process data in parallel.
-* *Typed*, i.e. values in a RDD have types, e.g. `RDD[Long]` or `RDD[(Int, String)]`.
-* *Partitioned*, i.e. the data inside a RDD is partitioned (split into partitions) and then distributed across nodes in a cluster (one partition per JVM that may or may not correspond to a single node).
+* *Typed* -- RDD records have types, e.g. `Long` in `RDD[Long]` or `(Int, String)` in `RDD[(Int, String)]`.
+* *Partitioned* -- records are partitioned (split into logical partitions) and distributed across nodes in a cluster.
+* *Location-Stickiness* -- `RDD` can define <<preferredLocations, placement preferences>> to compute partitions (as close to the records as possible).
 
-RDDs are distributed by design and to achieve even *data distribution* as well as leverage link:spark-data-locality.adoc[data locality] (in distributed systems like HDFS or Cassandra in which data is partitioned by default), they are *partitioned* to a fixed number of link:spark-rdd-partitions.adoc[partitions] - logical chunks (parts) of data. The logical division is for processing only and internally it is not divided whatsoever. Each partition comprises of *records*.
+NOTE: *Preferred location* (aka _locality preferences_ or _placement preferences_ or _locality info_) is information about the locations of RDD records (that Spark's link:spark-dagscheduler.adoc#preferred-locations[DAGScheduler] uses to place computing partitions on to have the tasks as close to the data as possible).
+
+Computing partitions in a RDD is a distributed process by design and to achieve even *data distribution* as well as leverage link:spark-data-locality.adoc[data locality] (in distributed systems like HDFS or Cassandra in which data is partitioned by default), they are *partitioned* to a fixed number of link:spark-rdd-partitions.adoc[partitions] - logical chunks (parts) of data. The logical division is for processing only and internally it is not divided whatsoever. Each partition comprises of *records*.
 
 .RDDs
 image::diagrams/spark-rdd-partitioned-distributed.png[align="center"]
 
-link:spark-rdd-partitions.adoc[Partitions are the units of parallelism]. You can control the number of partitions of a RDD using `repartition` or `coalesce` operations. Spark tries to be as close to data as possible without wasting time to send data across network by means of link:spark-rdd-shuffle.adoc[RDD shuffling], and creates as many partitions as required to follow the storage layout and thus optimize data access. It leads to a one-to-one mapping between (physical) data in distributed data storage, e.g. HDFS or Cassandra, and partitions.
+link:spark-rdd-partitions.adoc[Partitions are the units of parallelism]. You can control the number of partitions of a RDD using link:spark-rdd-partitions.adoc#repartition[repartition] or link:spark-rdd-partitions.adoc#coalesce[coalesce] transformations. Spark tries to be as close to data as possible without wasting time to send data across network by means of link:spark-rdd-shuffle.adoc[RDD shuffling], and creates as many partitions as required to follow the storage layout and thus optimize data access. It leads to a one-to-one mapping between (physical) data in distributed data storage, e.g. HDFS or Cassandra, and partitions.
 
 RDDs support two kinds of operations:
 
@@ -63,21 +63,28 @@ The motivation to create RDD were (https://www.cs.berkeley.edu/~matei/papers/201
 The goal is to reuse intermediate in-memory results across multiple data-intensive workloads with no need for copying large amounts of data over the
 network.
 
-An RDD is defined by five main intrinsic properties:
+Technically, RDDs follow the <<contract, contract>> defined by the five main intrinsic properties:
 
-* List of link:spark-rdd-dependencies.adoc[parent RDDs] that is the list of the dependencies an RDD depends on for records.
+* List of link:spark-rdd-dependencies.adoc[parent RDDs] that are the dependencies of the RDD.
+
 * An array of link:spark-rdd-partitions.adoc[partitions] that a dataset is divided to.
+
 * A <<compute, compute function>> to do a computation on partitions.
-* An optional link:spark-rdd-partitions.adoc#partitioner[partitioner] that defines how keys are hashed, and the pairs partitioned (for key-value RDDs)
-* Optional <<preferred-locations, preferred locations>> (aka *locality info*), i.e. hosts for a partition where the data will have been loaded.
+
+* An optional link:spark-rdd-Partitioner.adoc[Partitioner] that defines how keys are hashed, and the pairs partitioned (for key-value RDDs)
+
+* Optional <<getPreferredLocations, preferred locations>> (aka *locality info*), i.e. hosts for a partition where the records live or are the closest to read from.
 
 This RDD abstraction supports an expressive set of operations without having to modify scheduler for each one.
 
-An RDD is a named (by *name*) and uniquely identified (by *id*) entity inside a link:spark-sparkcontext.adoc[SparkContext].
-It lives in a SparkContext and as a SparkContext creates a logical boundary, RDDs can't be shared between SparkContexts (see link:spark-sparkcontext.adoc#sparkcontext-and-rdd[SparkContext and RDDs]).
+[[context]]
+An RDD is a named (by `name`) and uniquely identified (by `id`) entity in a link:spark-sparkcontext.adoc[SparkContext] (available as `context` property).
+
+RDDs live in one and only one link:spark-sparkcontext.adoc[SparkContext] that creates a logical boundary.
+
+NOTE: RDDs cannot be shared between `SparkContexts` (see link:spark-sparkcontext.adoc#sparkcontext-and-rdd[SparkContext and RDDs]).
 
 An RDD can optionally have a friendly name accessible using `name` that can be changed using `=`:
-
 
 ```
 scala> val ns = sc.parallelize(0 to 10)
@@ -99,13 +106,106 @@ scala> ns.toDebugString
 res3: String = (8) Friendly name ParallelCollectionRDD[2] at parallelize at <console>:24 []
 ```
 
-RDDs are a container of instructions on how to materialize big (arrays of) distributed data, and how to split it into partitions so Spark (using link:spark-executor.adoc[executors]) can hold some of them.
+RDDs are a container of instructions on how to materialize big (arrays of) distributed data, and how to split it into partitions so Spark (using link:spark-Executor.adoc[executors]) can hold some of them.
 
-In general, data distribution can help executing processing in parallel so a task processes a chunk of data that it could eventually keep in memory.
+In general data distribution can help executing processing in parallel so a task processes a chunk of data that it could eventually keep in memory.
 
 Spark does jobs in parallel, and RDDs are split into partitions to be processed and written in parallel. Inside a partition, data is processed sequentially.
 
 Saving partitions results in part-files instead of one single file (unless there is a single partition).
+
+=== [[checkpointRDD]] `checkpointRDD` Internal Method
+
+CAUTION: FIXME
+
+=== [[isCheckpointedAndMaterialized]] `isCheckpointedAndMaterialized` Method
+
+CAUTION: FIXME
+
+=== [[getNarrowAncestors]] `getNarrowAncestors` Method
+
+CAUTION: FIXME
+
+=== [[toLocalIterator]] `toLocalIterator` Method
+
+CAUTION: FIXME
+
+=== [[cache]] `cache` Method
+
+CAUTION: FIXME
+
+=== [[persist]] `persist` Methods
+
+[source, scala]
+----
+persist(): this.type
+persist(newLevel: StorageLevel): this.type
+----
+
+Refer to link:spark-rdd-caching.adoc#persist[Persisting RDD -- `persist` Methods].
+
+=== [[persist-internal]] `persist` Internal Method
+
+[source, scala]
+----
+persist(newLevel: StorageLevel, allowOverride: Boolean): this.type
+----
+
+CAUTION: FIXME
+
+NOTE: `persist` is used when `RDD` is requested to <<persist, persist>> itself and <<localCheckpoint, marks itself for local checkpointing>>.
+
+=== [[unpersist]] `unpersist` Method
+
+CAUTION: FIXME
+
+=== [[localCheckpoint]] `localCheckpoint` Method
+
+[source, scala]
+----
+localCheckpoint(): this.type
+----
+
+Refer to link:spark-rdd-checkpointing.adoc#localCheckpoint[Marking RDD for Local Checkpointing -- `localCheckpoint` Method].
+
+=== [[contract]] RDD Contract
+
+[source, scala]
+----
+abstract class RDD[T] {
+  def compute(split: Partition, context: TaskContext): Iterator[T]
+  def getPartitions: Array[Partition]
+  def getDependencies: Seq[Dependency[_]]
+  def getPreferredLocations(split: Partition): Seq[String] = Nil
+  val partitioner: Option[Partitioner] = None
+}
+----
+
+NOTE: `RDD` is an abstract class in Scala.
+
+.RDD Contract
+[cols="1,2",options="header",width="100%"]
+|===
+| Method
+| Description
+
+| <<compute, compute>>
+| Used exclusively when `RDD` <<computeOrReadCheckpoint, computes a partition (possibly by reading from a checkpoint)>>.
+
+| [[getPartitions]] `getPartitions`
+| Used exclusively when `RDD` <<partitions, is requested for its partitions>> (called only once as the value is cached).
+
+| [[getDependencies]] `getDependencies`
+| Used when `RDD` <<dependencies, is requested for its dependencies>> (called only once as the value is cached).
+
+| [[getPreferredLocations]] `getPreferredLocations`
+| Defines *placement preferences* of a partition.
+
+Used exclusively when `RDD` <<preferredLocations, is requested for the preferred locations of a partition>>.
+
+| [[partitioner]] `partitioner`
+| Defines the link:spark-rdd-Partitioner.adoc[Partitioner] of a `RDD`.
+|===
 
 === [[rdd-types]] Types of RDDs
 
@@ -115,10 +215,13 @@ There are some of the most interesting types of RDDs:
 * link:spark-rdd-cogroupedrdd.adoc[CoGroupedRDD]
 * link:spark-rdd-hadooprdd.adoc[HadoopRDD] is an RDD that provides core functionality for reading data stored in HDFS using the older MapReduce API. The most notable use case is the return RDD of `SparkContext.textFile`.
 * *MapPartitionsRDD* - a result of calling operations like `map`, `flatMap`, `filter`, link:spark-rdd-transformations.adoc#mapPartitions[mapPartitions], etc.
-* *CoalescedRDD* - a result of calling operations like `repartition` and `coalesce`
-* link:spark-rdd-shuffledrdd.adoc[ShuffledRDD] - a result of shuffling, e.g. after `repartition` and `coalesce`
+
+* *CoalescedRDD* - a result of link:spark-rdd-partitions.adoc#repartition[repartition] or link:spark-rdd-partitions.adoc#coalesce[coalesce] transformations.
+
+* link:spark-rdd-ShuffledRDD.adoc[ShuffledRDD] - a result of shuffling, e.g. after link:spark-rdd-partitions.adoc#repartition[repartition] or link:spark-rdd-partitions.adoc#coalesce[coalesce] transformations.
+
 * *PipedRDD* - an RDD created by piping elements to a forked external process.
-* *PairRDD* (implicit conversion by link:spark-rdd-pairrdd-functions.adoc[PairRDDFunctions]) that is an RDD of key-value pairs that is a result of `groupByKey` and `join` operations.
+* *PairRDD* (implicit conversion by link:spark-rdd-PairRDDFunctions.adoc[PairRDDFunctions]) that is an RDD of key-value pairs that is a result of `groupByKey` and `join` operations.
 * *DoubleRDD* (implicit conversion as `org.apache.spark.rdd.DoubleRDDFunctions`) that is an RDD of `Double` type.
 * *SequenceFileRDD* (implicit conversion as `org.apache.spark.rdd.SequenceFileRDDFunctions`) that is an RDD that can be saved as a `SequenceFile`.
 
@@ -225,10 +328,23 @@ Execute the following Spark job and you will see how the number of partitions de
 ints.repartition(2).count
 ```
 
-.Number of tasks after repartition
+.Number of tasks after `repartition`
 image::images/spark-ui-repartition-2.png[]
 
-=== [[compute]] Computing Partition (compute method)
+=== [[partitions]] Accessing RDD Partitions -- `partitions` Final Method
+
+[source, scala]
+----
+partitions: Array[Partition]
+----
+
+`partitions` returns the link:spark-rdd-partitions.adoc[Partitions] of a `RDD`.
+
+`partitions` <<checkpointRDD, requests `CheckpointRDD` for partitions>> (if the RDD is checkpointed) or <<getPartitions, finds them itself>> and cache (in <<partitions_, partitions_>> internal registry that is used next time).
+
+NOTE: Partitions have the property that their internal index should be equal to their position in the owning RDD.
+
+=== [[compute]] Computing Partition (in TaskContext) -- `compute` Method
 
 [source, scala]
 ----
@@ -237,31 +353,49 @@ compute(split: Partition, context: TaskContext): Iterator[T]
 
 The abstract `compute` method computes the input `split` link:spark-rdd-partitions.adoc[partition] in the link:spark-taskscheduler-taskcontext.adoc[TaskContext] to produce a collection of values (of type `T`).
 
-It is implemented by any type of RDD in Spark and is called every time the records are requested unless RDD is link:spark-rdd-caching.adoc[cached] or link:spark-rdd-checkpointing.adoc[checkpointed] (and the records can be read from an external storage, but this time closer to the compute node).
+`compute` is implemented by any type of RDD in Spark and is called every time the records are requested unless RDD is link:spark-rdd-caching.adoc[cached] or link:spark-rdd-checkpointing.adoc[checkpointed] (and the records can be read from an external storage, but this time closer to the compute node).
 
-When an RDD is link:spark-rdd-caching.adoc[cached], for specified link:spark-rdd-caching.adoc#StorageLevel[storage levels] (i.e. all but `NONE`) link:spark-cachemanager.adoc[CacheManager] is requested to get or compute partitions.
+When an RDD is link:spark-rdd-caching.adoc[cached], for specified link:spark-rdd-StorageLevel.adoc[storage levels] (i.e. all but `NONE`) link:spark-cachemanager.adoc[`CacheManager` is requested to get or compute partitions].
 
-`compute` method runs on the link:spark-driver.adoc[driver].
+NOTE: `compute` method runs on the link:spark-driver.adoc[driver].
 
-=== [[preferred-locations]][[getPreferredLocations]] Preferred Locations (aka Locality Info)
+=== [[preferredLocations]] Defining Placement Preferences of RDD Partition -- `preferredLocations` Final Method
 
 [source, scala]
 ----
-getPreferredLocations(split: Partition): Seq[String]
+preferredLocations(split: Partition): Seq[String]
 ----
 
-A *preferred location* (aka _locality preferences_ or _placement preferences_ or _locality info_) is information about the locations of the `split` block for an HDFS file (to place computing the partition on).
+`preferredLocations` <<checkpointRDD, requests `CheckpointRDD` for placement preferences>> (if the RDD is checkpointed) or <<getPreferredLocations, calculates them itself>>.
 
-`getPreferredLocations` returns the preferred locations for the input `split` partition (of an RDD).
+[NOTE]
+====
+`preferredLocations` is a template method that uses  <<getPreferredLocations, getPreferredLocations>> that custom RDDs can override to specify placement preferences for a partition.
 
-=== [[getNumPartitions]] Getting Partition Count (getNumPartitions method)
+<<getPreferredLocations, getPreferredLocations>> defines no placement preferences by default.
+====
+
+[NOTE]
+====
+`preferredLocations` is mainly used when link:spark-dagscheduler.adoc#getPreferredLocs[`DAGScheduler` computes preferred locations for missing partitions].
+
+The other usages are to define the locations by custom RDDs, e.g.
+
+* (Spark Core) link:spark-rdd-blockrdd.adoc[BlockRDD], `CoalescedRDD`, link:spark-rdd-hadooprdd.adoc[HadoopRDD], link:spark-rdd-NewHadoopRDD.adoc[NewHadoopRDD], link:spark-rdd-parallelcollectionrdd.adoc[ParallelCollectionRDD], `ReliableCheckpointRDD`, link:spark-rdd-ShuffledRDD.adoc[ShuffledRDD]
+
+* (Spark SQL) `KafkaSourceRDD`, `ShuffledRowRDD`, `FileScanRDD`, `StateStoreRDD`
+
+* (Spark Streaming) `KafkaRDD`, `WriteAheadLogBackedBlockRDD`
+====
+
+=== [[getNumPartitions]] Getting Number of Partitions -- `getNumPartitions` Method
 
 [source, scala]
 ----
 getNumPartitions: Int
 ----
 
-`getNumPartitions` calculates the number of partitions of the RDD.
+`getNumPartitions` gives the number of partitions of a RDD.
 
 [source, scala]
 ----
@@ -271,3 +405,65 @@ res0: Int = 2
 scala> sc.textFile("README.md", 5).getNumPartitions
 res1: Int = 5
 ----
+
+=== [[computeOrReadCheckpoint]] Computing Partition (Possibly by Reading From Checkpoint) -- `computeOrReadCheckpoint` Method
+
+[source, scala]
+----
+computeOrReadCheckpoint(split: Partition, context: TaskContext): Iterator[T]
+----
+
+`computeOrReadCheckpoint` reads `split` partition from a checkpoint (<<isCheckpointedAndMaterialized, if available already>>) or <<compute, computes it>> yourself.
+
+NOTE: `computeOrReadCheckpoint` is a `private[spark]` method.
+
+NOTE: `computeOrReadCheckpoint` is used when `RDD` <<iterator, computes records for a partition>> or <<getOrCompute, getOrCompute>>.
+
+=== [[iterator]] Accessing Records For Partition Lazily -- `iterator` Final Method
+
+[source, scala]
+----
+iterator(split: Partition, context: TaskContext): Iterator[T]
+----
+
+`iterator` <<getOrCompute, gets (or computes) `split` partition>> when link:spark-rdd-caching.adoc[cached] or <<computeOrReadCheckpoint, computes it (possibly by reading from checkpoint)>>.
+
+NOTE: `iterator` is a `final` method that, despite being public, considered private and only available for implementing custom RDDs.
+
+=== [[getOrCompute]] Computing RDD Partition -- `getOrCompute` Method
+
+[source, scala]
+----
+getOrCompute(partition: Partition, context: TaskContext): Iterator[T]
+----
+
+CAUTION: FIXME
+
+`getOrCompute` requests link:spark-blockmanager.adoc#getOrElseUpdate[`BlockManager` for a block] and returns a `InterruptibleIterator`.
+
+NOTE: `InterruptibleIterator` delegates to a wrapped `Iterator` and allows for link:spark-taskscheduler-taskcontext.adoc#isInterrupted[task killing functionality].
+
+NOTE: `getOrCompute` is called on Spark executors.
+
+Internally, `getOrCompute` creates a link:spark-blockdatamanager.adoc#RDDBlockId[RDDBlockId] (for the partition in the RDD) that is then used to link:spark-blockmanager.adoc#getOrElseUpdate[retrieve it from `BlockManager` or compute, persist and return its values].
+
+NOTE: `getOrCompute` is a `private[spark]` method that is exclusively used when <<iterator, iterating over partition when a RDD is cached>>.
+
+=== [[dependencies]] RDD Dependencies -- `dependencies` Final Template Method
+
+[source, scala]
+----
+dependencies: Seq[Dependency[_]]
+----
+
+`dependencies` returns the link:spark-rdd-dependencies.adoc[dependencies of a RDD].
+
+NOTE: `dependencies` is a final method that no class in Spark can ever override.
+
+Internally, `dependencies` checks out whether the RDD is link:spark-rdd-checkpointing.adoc[checkpointed] and acts accordingly.
+
+For a RDD being checkpointed, `dependencies` returns a single-element collection with a link:spark-rdd-NarrowDependency.adoc#OneToOneDependency[OneToOneDependency].
+
+For a non-checkpointed RDD, `dependencies` collection is computed using <<contract, `getDependencies` method>>.
+
+NOTE: `getDependencies` method is an abstract method that custom RDDs are required to provide.

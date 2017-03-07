@@ -1,12 +1,12 @@
-== [[DataSource]] DataSource
+== [[DataSource]] DataSource -- Pluggable Data Sources
 
-`DataSource` class belongs to the Data Source API (along with link:spark-sql-dataframereader.adoc[DataFrameReader] for loading datasets, link:spark-sql-dataframewriter.adoc[DataFrameWriter] for saving datasets and link:spark-sql-streaming-StreamSourceProvider.adoc[StreamSourceProvider] for creating streaming sources).
+`DataSource` belongs to the Data Source API (along with link:spark-sql-dataframereader.adoc[DataFrameReader] for loading datasets, link:spark-sql-dataframewriter.adoc[DataFrameWriter] for saving datasets and link:spark-sql-streaming-StreamSourceProvider.adoc[StreamSourceProvider] for creating streaming sources).
 
-`DataSource` is an internal class that represents a **pluggable data source** in Spark SQL.
+`DataSource` is an internal class that represents a **pluggable data source** in Spark SQL with few extension points to further enrich the capabilities of Spark SQL.
 
 .``DataSource``'s Extension Points
-[frame="topbot",cols="1,3",options="header",width="100%"]
-|======================
+[cols="1,3",options="header",width="100%"]
+|===
 | Extension Point | Description
 | link:spark-sql-streaming-StreamSourceProvider.adoc[StreamSourceProvider] | Used in:
 
@@ -14,7 +14,8 @@
 
 2. <<createSink, createSink>> for streamed writing
 
-3. <<resolveRelation, resolveRelation>> for resolved `BaseRelation`
+3. <<resolveRelation, resolveRelation>> for resolved link:spark-sql-BaseRelation.adoc[BaseRelation].
+
 | `FileFormat` | Used in:
 
 1. <<sourceSchema, sourceSchema>> for streamed reading
@@ -22,7 +23,7 @@
 2. <<write, write>> for writing a `DataFrame` to a `DataSource` (as part of creating a table as select)
 
 | `CreatableRelationProvider` | Used in <<write, write>> for writing a `DataFrame` to a `DataSource` (as part of creating a table as select).
-|======================
+|===
 
 As a user, you interact with `DataSource` by link:spark-sql-dataframereader.adoc[DataFrameReader] (when you execute link:spark-sql-sparksession.adoc#read[spark.read] or link:spark-sql-sparksession.adoc#readStream[spark.readStream]) or `CREATE TABLE USING DDL`.
 
@@ -183,17 +184,6 @@ For `CreatableRelationProvider` data sources, `CreatableRelationProvider.createR
 
 NOTE: `write` is executed when...
 
-=== [[resolveRelation]] `resolveRelation`
-
-[source, scala]
-----
-resolveRelation(checkPathExist: Boolean = true): BaseRelation
-----
-
-`resolveRelation` creates a `BaseRelation` for a given `DataSource`.
-
-CAUTION: FIXME What's `BaseRelation`? Why is the name?
-
 ==== [[lookupDataSource]] `lookupDataSource` Internal Method
 
 [source, scala]
@@ -213,3 +203,25 @@ There has to be one data source registered only or you will see the following `R
 ----
 Multiple sources found for [provider] ([comma-separated class names]), please specify the fully qualified class name.
 ----
+
+=== [[resolveRelation]] Creating `BaseRelation` for Reading or Writing -- `resolveRelation` Method
+
+[source, scala]
+----
+resolveRelation(checkFilesExist: Boolean = true): BaseRelation
+----
+
+`resolveRelation` resolves (i.e. creates) a link:spark-sql-BaseRelation.adoc[BaseRelation] to read from or write to a `DataSource`.
+
+Internally, `resolveRelation` creates an instance of `providingClass` (for a `DataSource`) and acts according to its type, i.e. `SchemaRelationProvider`, `RelationProvider` or `FileFormat`.
+
+.`resolveRelation` and Resolving `BaseRelation` per (Schema) Providers
+[cols="1,3",options="header",width="100%"]
+|===
+| Provider | Behaviour
+| `SchemaRelationProvider` | Executes `SchemaRelationProvider.createRelation` with the provided schema.
+
+| `RelationProvider` | Executes `RelationProvider.createRelation`.
+
+| `FileFormat` | Creates a link:spark-sql-BaseRelation.adoc#HadoopFsRelation[HadoopFsRelation].
+|===

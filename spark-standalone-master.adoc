@@ -31,6 +31,14 @@ INFO Master: Starting Spark master at spark://japila.local:7077
 INFO Master: Running Spark version 1.6.0-SNAPSHOT
 ```
 
+=== [[creating-instance]] Creating Master Instance
+
+CAUTION: FIXME
+
+=== [[startRpcEnvAndEndpoint]] `startRpcEnvAndEndpoint` Method
+
+CAUTION: FIXME
+
 === Master WebUI
 
 FIXME MasterWebUI
@@ -76,7 +84,7 @@ The Master endpoint starts the daemon single-thread scheduler pool `master-forwa
 
 === [[metrics]] Metrics
 
-Master uses link:spark-metrics.adoc[Spark Metrics System] (via `MasterSource`) to report metrics about internal status.
+Master uses link:spark-MetricsSystem.adoc[Spark Metrics System] (via `MasterSource`) to report metrics about internal status.
 
 The name of the source is *master*.
 
@@ -166,7 +174,7 @@ A *RegisterApplication* event is sent by link:spark-standalone.adoc#AppClient[Ap
 
 CAUTION: FIXME Finish
 
-A standalone Master receives `RegisterApplication` with a `ApplicationDescription` and the driver's `RpcEndpointRef`.
+A standalone Master receives `RegisterApplication` with a `ApplicationDescription` and the driver's link:spark-RpcEndpointRef.adoc[RpcEndpointRef].
 
 ```
 INFO Registering app " + description.name
@@ -255,7 +263,7 @@ java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005 -cp /Use
 The above command suspends (`suspend=y`) the process until a JPDA debugging client, e.g. your IDE, is connected, and that Spark is available under `/Users/jacek/dev/oss/spark`. Change it to meet your environment.
 ====
 
-When `Master` starts, it first creates the <<spark-configuration.adoc#default-configuration, default SparkConf configuration>> whose values it then overrides using  <<environment-variables, environment variables>> and <<command-line-options, command-line options>>.
+When `Master` starts, it first creates the <<spark-SparkConf.adoc#default-configuration, default SparkConf configuration>> whose values it then overrides using  <<environment-variables, environment variables>> and <<command-line-options, command-line options>>.
 
 A fully-configured master instance requires `host`, `port` (default: `7077`), `webUiPort` (default: `8080`) settings defined.
 

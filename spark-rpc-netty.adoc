@@ -1,6 +1,6 @@
 == Netty-based RpcEnv
 
-TIP: Read link:spark-rpc.adoc[RPC Environment (RpcEnv)] about the concept of RPC Environment in Spark.
+TIP: Read up link:spark-rpc.adoc[RpcEnv -- RPC Environment] on the concept of RPC Environment in Spark.
 
 The class https://github.com/apache/spark/blob/master/core/src/main/scala/org/apache/spark/rpc/netty/NettyRpcEnv.scala[org.apache.spark.rpc.netty.NettyRpcEnv] is the implementation of link:spark-rpc.adoc[RpcEnv] using http://netty.io/[Netty] - _"an asynchronous event-driven network application framework for rapid development of maintainable high performance protocol servers & clients"_.
 
@@ -31,6 +31,10 @@ DEBUG Shuffle server started on port :
 FIXME: The message above in TransportServer has a space before `:`.
 
 ====
+
+=== [[NettyRpcEnvFactory]][[create]] Creating NettyRpcEnv -- `create` Method
+
+CAUTION: FIXME
 
 === [[client-mode]] Client Mode
 
@@ -89,7 +93,7 @@ The Netty-based implementation uses the following properties:
 
 === [[endpoints]] Endpoints
 
-* `endpoint-verifier` (`RpcEndpointVerifier`) - a RpcEndpoint for remote RpcEnvs to query whether an RpcEndpoint exists or not. It uses `Dispatcher` that keeps track of registered endpoints and responds `true`/`false` to `CheckExistence` message.
+* `endpoint-verifier` (`RpcEndpointVerifier`) - a link:spark-rpc-RpcEndpoint.adoc[RpcEndpoint] for remote RpcEnvs to query whether an RpcEndpoint exists or not. It uses `Dispatcher` that keeps track of registered endpoints and responds `true`/`false` to `CheckExistence` message.
 
 `endpoint-verifier` is used to check out whether a given endpoint exists or not before the endpoint's reference is given back to clients.
 

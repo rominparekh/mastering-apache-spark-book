@@ -1,0 +1,32 @@
+== [[ShuffleBlockResolver]] ShuffleBlockResolver
+
+`ShuffleBlockResolver` is used to <<getBlockData, find shuffle block data>>.
+
+NOTE: The one and only implementation of <<contract, ShuffleBlockResolver contract>> in Spark is link:spark-IndexShuffleBlockResolver.adoc[IndexShuffleBlockResolver].
+
+NOTE: `ShuffleBlockResolver` is used exclusively in link:spark-blockmanager.adoc#getBlockData[`BlockManager` to find shuffle block data].
+
+=== [[contract]] ShuffleBlockResolver Contract
+
+[source, scala]
+----
+trait ShuffleBlockResolver {
+  def getBlockData(blockId: ShuffleBlockId): ManagedBuffer
+  def stop(): Unit
+}
+----
+
+NOTE: `ShuffleBlockResolver` is a `private[spark]` contract.
+
+.ShuffleBlockResolver Contract
+[cols="1,2",options="header",width="100%"]
+|===
+| Method
+| Description
+
+| [[getBlockData]] `getBlockData`
+| Used when `BlockManager` is requested to link:spark-blockmanager.adoc#getBlockData[find shuffle block data] and later (duplicate?) link:spark-blockmanager.adoc#getLocalBytes[for local shuffle block data as serialized bytes].
+
+| [[stop]] `stop`
+| Used when link:spark-SortShuffleManager.adoc#stop[`SortShuffleManager` stops].
+|===

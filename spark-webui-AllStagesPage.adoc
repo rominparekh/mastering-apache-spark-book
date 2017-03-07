@@ -1,6 +1,6 @@
 == [[AllStagesPage]] Stages for All Jobs Page
 
-`AllStagesPage` is a web page (section) that is registered with the link:spark-webui-stages.adoc[Stages tab] that <<render, displays all stages in a Spark application>> - active, pending, completed, and failed stages with their count.
+`AllStagesPage` is a web page (section) that is registered with the link:spark-webui-StagesTab.adoc[Stages tab] that <<render, displays all stages in a Spark application>> - active, pending, completed, and failed stages with their count.
 
 .Stages Tab in web UI for FAIR scheduling mode (with pools only)
 image::images/spark-webui-stages-alljobs.png[align="center"]
@@ -10,7 +10,7 @@ In link:spark-taskscheduler-schedulingmode.adoc#FAIR[FAIR scheduling mode] you h
 
 NOTE: Pool names are calculated using link:spark-sparkcontext.adoc#getAllPools[SparkContext.getAllPools].
 
-Internally, `AllStagesPage` is a `WebUIPage` with access to the parent link:spark-webui-stages.adoc[Stages tab] and more importantly the link:spark-webui-JobProgressListener.adoc[JobProgressListener] to have access to current state of the entire Spark application.
+Internally, `AllStagesPage` is a `WebUIPage` with access to the parent link:spark-webui-StagesTab.adoc[Stages tab] and more importantly the link:spark-webui-JobProgressListener.adoc[JobProgressListener] to have access to current state of the entire Spark application.
 
 === [[render]] Rendering AllStagesPage (render method)
 
@@ -30,9 +30,7 @@ It uses the parent's link:spark-webui-JobProgressListener.adoc[JobProgressListen
 * the number of completed stages (as `numCompletedStages`)
 * the number of failed stages (as `numFailedStages`)
 
-NOTE: Stage information is available as `StageInfo` object.
-
-CAUTION: FIXME `StageInfo`???
+NOTE: Stage information is available as link:spark-dagscheduler-StageInfo.adoc[StageInfo] object.
 
 There are 4 different tables for the different states of stages - active, pending, completed, and failed. They are displayed only when there are stages in a given state.
 

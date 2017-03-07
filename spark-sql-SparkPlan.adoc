@@ -1,0 +1,141 @@
+== [[SparkPlan]] `SparkPlan` -- Physical Execution Plan
+
+`SparkPlan` is the base link:spark-sql-catalyst-QueryPlan.adoc[QueryPlan] for physical operators to build physical execution plan of a structured query (which is also modelled as...a link:spark-sql-dataset.adoc[Dataset]!).
+
+The <<contract, SparkPlan contract>> assumes that concrete physical operators define <<doExecute, doExecute>> method which is executed when the final `execute` is called.
+
+NOTE: The final `execute` is triggered when the link:spark-sql-query-execution.adoc#toRdd[`QueryExecution` (of a `Dataset`) is requested for a `RDD[InternalRow]`].
+
+When executed, a `SparkPlan` produces link:spark-rdd.adoc[RDDs] of link:spark-sql-InternalRow.adoc[InternalRow] (i.e. ``RDD[InternalRow]``s).
+
+CAUTION: FIXME `SparkPlan` is `Serializable`. Why?
+
+NOTE: The naming convention for physical operators in Spark's source code is to have their names end with the _Exec_ prefix, e.g. `DebugExec` or link:spark-sql-spark-plan-LocalTableScanExec.adoc[LocalTableScanExec].
+
+TIP: Read link:spark-sql-InternalRow.adoc[InternalRow] about the internal binary row format.
+
+.`SparkPlan` Properties
+[cols="1,2",options="header",width="100%"]
+|===
+| Name | Description
+
+| `metadata`
+|
+
+| <<metrics, metrics>>
+|
+
+| `outputPartitioning`
+|
+
+| `outputOrdering`
+|
+
+|===
+
+`SparkPlan` has the following `final` methods that prepare environment and pass calls on to corresponding methods that constitute <<contract, SparkPlan Contract>>:
+
+* `execute` calls `doExecute`
+* `prepare` calls `doPrepare`
+* `executeBroadcast` calls `doExecuteBroadcast`
+
+[[specialized-spark-plans]]
+.Physical Query Operators / Specialized SparkPlans
+[cols="1,2",options="header",width="100%"]
+|===
+| Name
+| Description
+
+| [[UnaryExecNode]] `UnaryExecNode`
+|
+
+| [[LeafExecNode]] `LeafExecNode`
+|
+
+| [[BinaryExecNode]] `BinaryExecNode`
+|
+
+|===
+
+=== [[waitForSubqueries]] `waitForSubqueries` Method
+
+CAUTION: FIXME
+
+=== [[prepare]] `prepare` Method
+
+CAUTION: FIXME
+
+=== [[executeCollect]] `executeCollect` Method
+
+CAUTION: FIXME
+
+=== [[contract]] `SparkPlan` Contract
+
+`SparkPlan` contract requires that concrete physical operators (aka physical plans) define their own custom `doExecute`.
+
+[[doExecute]]
+[source, scala]
+----
+doExecute(): RDD[InternalRow]
+----
+
+.Optional Methods
+[cols="1,2",options="header",width="100%"]
+|===
+| Name
+| Description
+
+| [[doPrepare]] `doPrepare`
+| Prepares execution
+
+| [[doExecuteBroadcast]] `doExecuteBroadcast`
+|
+
+|===
+
+CAUTION: FIXME Why are there two executes?
+
+=== [[executeQuery]] Executing Query in Scope (after Preparations) -- `executeQuery` Final Method
+
+[source, scala]
+----
+executeQuery[T](query: => T): T
+----
+
+`executeQuery` executes `query` in a scope (i.e. so that all RDDs created will have the same scope).
+
+Internally, `executeQuery` calls <<prepare, prepare>> and <<waitForSubqueries, waitForSubqueries>> before executing `query`.
+
+NOTE: `executeQuery` is executed as part of <<execute, execute>>, <<executeBroadcast, executeBroadcast>> and when link:spark-sql-whole-stage-codegen.adoc#CodegenSupport[CodegenSupport] produces a Java source code.
+
+=== [[executeBroadcast]] Computing Query Result As Broadcast Variable -- `executeBroadcast` Final Method
+
+[source, scala]
+----
+executeBroadcast[T](): broadcast.Broadcast[T]
+----
+
+`executeBroadcast` returns the results of the query as a broadcast variable.
+
+Internally, `executeBroadcast` executes <<doExecuteBroadcast, doExecuteBroadcast>> inside <<executeQuery, executeQuery>>.
+
+NOTE: `executeBroadcast` is executed in link:spark-sql-spark-plan-BroadcastHashJoinExec.adoc[BroadcastHashJoinExec], `BroadcastNestedLoopJoinExec` and `ReusedExchangeExec`.
+
+=== [[SQLMetric]] SQLMetric
+
+`SQLMetric` is an link:spark-accumulators.adoc[accumulator] that accumulates and produces long metrics values.
+
+There are three known `SQLMetrics`:
+
+* `sum`
+* `size`
+* `timing`
+
+=== [[metrics]] metrics Lookup Table
+
+[source, scala]
+----
+metrics: Map[String, SQLMetric] = Map.empty
+----
+
+`metrics` is a `private[sql]` lookup table of supported <<SQLMetric, SQLMetrics>> by their names.

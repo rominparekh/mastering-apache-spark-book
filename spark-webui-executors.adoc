@@ -9,11 +9,27 @@ image::images/spark-webui-executors.png[align="center"]
 
 The title of the tab is *Executors*.
 
-You can access the Executors tab under `/executors` URL, i.e. http://localhost:4040/executors.
+You can access the Executors tab under `/executors` URL, e.g. http://localhost:4040/executors.
 
 === [[ExecutorsPage]] ExecutorsPage
 
 CAUTION: FIXME
+
+=== [[getExecInfo]] `getExecInfo` Method
+
+[source, scala]
+----
+getExecInfo(
+  listener: ExecutorsListener,
+  statusId: Int,
+  isActive: Boolean): ExecutorSummary
+----
+
+`getExecInfo` creates a `ExecutorSummary`.
+
+CAUTION: FIXME
+
+NOTE: `getExecInfo` is used when...FIXME
 
 === [[ExecutorThreadDumpPage]] ExecutorThreadDumpPage
 

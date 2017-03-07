@@ -1,0 +1,30 @@
+== [[ShuffleWriter]] ShuffleWriter
+
+CAUTION: FIXME
+
+=== [[contract]] `ShuffleWriter` Contract
+
+[source, scala]
+----
+abstract class ShuffleWriter[K, V] {
+  def write(records: Iterator[Product2[K, V]]): Unit
+  def stop(success: Boolean): Option[MapStatus]
+}
+----
+
+NOTE: `ShuffleWriter` is a `private[spark]` contract.
+
+.`ShuffleWriter` Contract
+[cols="1,2",options="header",width="100%"]
+|===
+| Method
+| Description
+
+| [[write]] `write`
+| Writes a sequence of records (for a RDD partition) to a shuffle system when a link:spark-taskscheduler-ShuffleMapTask.adoc#runTask[`ShuffleMapTask` writes its execution result].
+
+| [[stop]] `stop`
+| Closes a `ShuffleWriter` and returns link:spark-MapStatus.adoc[MapStatus] if the writing completed successfully.
+
+Used when a link:spark-taskscheduler-ShuffleMapTask.adoc#runTask[`ShuffleMapTask` finishes execution] with the input `success` flag to match the status of the task execution.
+|===

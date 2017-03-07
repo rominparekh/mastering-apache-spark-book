@@ -1,0 +1,59 @@
+== [[ShuffleExchange]] `ShuffleExchange` Physical Operator
+
+`ShuffleExchange` is a link:spark-sql-SparkPlan.adoc#UnaryExecNode[unary physical operator]. It corresponds to `Repartition` (with shuffle enabled) and `RepartitionByExpression` logical operators (as translated in link:spark-sql-BasicOperators.adoc[`BasicOperators` strategy]).
+
+When created, `ShuffleExchange` takes a `Partitioning`, a single `child` link:spark-sql-SparkPlan.adoc[physical operator] and an optional link:spark-sql-ExchangeCoordinator.adoc[ExchangeCoordinator].
+
+.`ShuffleExchange` Metrics
+[cols="1,2",options="header",width="100%"]
+|===
+| Name | Description
+| [[dataSize]] `dataSize` | data size total (min, med, max)
+|===
+
+`nodeName` is computed based on the optional link:spark-sql-ExchangeCoordinator.adoc[ExchangeCoordinator] with *Exchange* prefix and possibly *(coordinator id: [coordinator-hash-code])*.
+
+CAUTION: FIXME A screenshot with the node in execution DAG in web UI.
+
+`outputPartitioning` is the input `Partitioning`.
+
+While link:spark-sql-SparkPlan.adoc#doPrepare[preparing execution] (using `doPrepare`), `ShuffleExchange` registers itself with the link:spark-sql-ExchangeCoordinator.adoc[ExchangeCoordinator] if available.
+
+CAUTION: FIXME When could `ExchangeCoordinator` not be available?
+
+When <<doExecute, doExecute>>, `ShuffleExchange` computes a link:spark-sql-ShuffledRowRDD.adoc[ShuffledRowRDD] and caches it (to reuse avoiding possibly expensive executions).
+
+=== [[doExecute]] `doExecute` Method
+
+[source, scala]
+----
+doExecute(): RDD[InternalRow]
+----
+
+NOTE: `doExecute` is a part of the link:spark-sql-SparkPlan.adoc#contract[SparkPlan contract].
+
+CAUTION: FIXME
+
+=== [[prepareShuffleDependency]] `prepareShuffleDependency` Internal Method
+
+[source, scala]
+----
+prepareShuffleDependency(): ShuffleDependency[Int, InternalRow, InternalRow]
+----
+
+CAUTION: FIXME
+
+=== [[prepareShuffleDependency-helper]] `prepareShuffleDependency` Helper Method
+
+[source, scala]
+----
+prepareShuffleDependency(
+  rdd: RDD[InternalRow],
+  outputAttributes: Seq[Attribute],
+  newPartitioning: Partitioning,
+  serializer: Serializer): ShuffleDependency[Int, InternalRow, InternalRow]
+----
+
+`prepareShuffleDependency` creates a link:spark-rdd-ShuffleDependency.adoc[ShuffleDependency] dependency.
+
+NOTE: `prepareShuffleDependency` is used when `ShuffleExchange` <<prepareShuffleDependency, prepares a `ShuffleDependency`>> (as part of...FIXME), `CollectLimitExec` and `TakeOrderedAndProjectExec` physical operators are executed.

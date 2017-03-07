@@ -5,8 +5,8 @@
 `JobProgressListener` intercepts the following link:spark-SparkListener.adoc#SparkListenerEvent[Spark events].
 
 .`JobProgressListener` Events
-[frame="topbot",cols="1,2",options="header",width="100%"]
-|======================
+[cols="1,2",options="header",width="100%"]
+|===
 | Handler | Purpose
 | <<onJobStart, onJobStart>> | Creates a <<JobUIData, JobUIData>>. It updates <<jobGroupToJobIds, jobGroupToJobIds>>, <<pendingStages, pendingStages>>, <<jobIdToData, jobIdToData>>, <<activeJobs, activeJobs>>, <<stageIdToActiveJobIds, stageIdToActiveJobIds>>, <<stageIdToInfo, stageIdToInfo>> and <<stageIdToData, stageIdToData>>.
 
@@ -34,15 +34,19 @@ Used in link:spark-webui-jobs.adoc[Jobs tab] (for a total uptime).
 | `onTaskGettingResult` | Does nothing.
 
 *FIXME*: Why is this event intercepted at all?!
-|======================
+|===
+
+=== [[updateAggregateMetrics]] `updateAggregateMetrics` Method
+
+CAUTION: FIXME
 
 === [[registries]] Registries and Counters
 
 `JobProgressListener` uses registries to collect information about job executions.
 
 .`JobProgressListener` Registries and Counters
-[frame="topbot",cols="1,2",options="header",width="100%"]
-|======================
+[cols="1,2",options="header",width="100%"]
+|===
 | Name | Description
 | [[numCompletedStages]] `numCompletedStages` |
 | [[numFailedStages]] `numFailedStages` |
@@ -69,7 +73,7 @@ Used in link:spark-webui-jobs.adoc[Jobs tab] (for a total uptime).
 Used to track block managers so the Stage page can display `Address` in  link:spark-webui-StagePage.adoc#ExecutorTable[Aggregated Metrics by Executor].
 
 FIXME: How does Executors page collect the very same information?
-|======================
+|===
 
 === [[onJobStart]] `onJobStart` Method
 
@@ -86,11 +90,11 @@ onJobStart(jobStart: SparkListenerJobStart): Unit
 
 `onJobStart` looks the job ids for the group id (in <<jobGroupToJobIds, jobGroupToJobIds>> registry) and adds the job id.
 
-The internal <<pendingStages, pendingStages>> is updated with `StageInfo` for the stage id (for every `StageInfo` in `SparkListenerJobStart.stageInfos` collection).
+The internal <<pendingStages, pendingStages>> is updated with link:spark-dagscheduler-StageInfo.adoc[StageInfo] for the stage id (for every `StageInfo` in `SparkListenerJobStart.stageInfos` collection).
 
 `onJobStart` records the stages of the job in <<stageIdToActiveJobIds, stageIdToActiveJobIds>>.
 
-`onJobStart` records ``StageInfo``s in <<stageIdToInfo, stageIdToInfo>> and <<stageIdToData, stageIdToData>>.
+`onJobStart` records link:spark-dagscheduler-StageInfo.adoc[StageInfos] in <<stageIdToInfo, stageIdToInfo>> and <<stageIdToData, stageIdToData>>.
 
 === [[onJobEnd]] `onJobEnd` Method
 
@@ -127,7 +131,7 @@ onTaskStart(taskStart: SparkListenerTaskStart): Unit
 
 `onTaskStart` updates `StageUIData` and `JobUIData`, and registers a new `TaskUIData`.
 
-`onTaskStart` reads the `TaskInfo` from the input `taskStart`.
+`onTaskStart` takes link:spark-TaskInfo.adoc[TaskInfo] from the input `taskStart`.
 
 `onTaskStart` looks the `StageUIData` for the stage and stage attempt ids up (in <<stageIdToData, stageIdToData>> registry).
 
@@ -144,7 +148,7 @@ onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit
 
 `onTaskEnd` updates the `StageUIData` (and `TaskUIData`), `ExecutorSummary`, and `JobUIData`.
 
-`onTaskEnd` reads the `TaskInfo` from the input `taskEnd`.
+`onTaskEnd` takes link:spark-TaskInfo.adoc[TaskInfo] from the input `taskEnd`.
 
 NOTE: `onTaskEnd` does its processing when the `TaskInfo` is available and `stageAttemptId` is not `-1`.
 
@@ -164,9 +168,7 @@ _Again_, depending on the task end's reason `onTaskEnd` computes `errorMessage` 
 
 CAUTION: FIXME Why is the same information in two different registries -- `stageData` and `execSummary`?!
 
-If `taskMetrics` is available, `updateAggregateMetrics` is executed.
-
-CAUTION: FIXME Why is `updateAggregateMetrics` doing?
+If `taskMetrics` is available, <<updateAggregateMetrics, updateAggregateMetrics>> is executed.
 
 The task's `TaskUIData` is looked up in `stageData.taskData` and `updateTaskInfo` and `updateTaskMetrics` are executed. `errorMessage` is updated.
 
@@ -224,10 +226,10 @@ CAUTION: FIXME
 === [[settings]] Settings
 
 .Spark Properties
-[frame="topbot",options="header",width="100%"]
-|======================
+[options="header",width="100%"]
+|===
 | Setting | Default Value | Description
 | [[spark_ui_retainedJobs]] `spark.ui.retainedJobs` | `1000` | The number of jobs to hold information about
 | [[spark_ui_retainedStages]] `spark.ui.retainedStages` | `1000` | The number of stages to hold information about
 | [[spark_ui_retainedTasks]] `spark.ui.retainedTasks` | `100000` | The number of tasks to hold information about
-|======================
+|===

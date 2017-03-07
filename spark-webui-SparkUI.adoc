@@ -1,10 +1,20 @@
 == [[SparkUI]] SparkUI
 
-`SparkUI` represents the web UI for a <<createLiveUI, Spark application>> and <<createHistoryUI, Spark History Server>>. It is <<creating-instance, created>> and bound when link:spark-sparkcontext-creating-instance-internals.adoc#ui[`SparkContext` is created] (with link:spark-webui.adoc#spark_ui_enabled[spark.ui.enabled] enabled).
+`SparkUI` represents the web UI for a <<createLiveUI, Spark application>> and <<createHistoryUI, Spark History Server>>. It is <<creating-instance, created>> and bound when link:spark-sparkcontext-creating-instance-internals.adoc#ui[`SparkContext` is created] (with link:spark-webui.adoc#spark.ui.enabled[spark.ui.enabled] enabled).
 
 NOTE: The only difference between `SparkUI` for a <<createLiveUI, Spark application>> and <<createHistoryUI, Spark History Server>> is that...**FIXME**
 
-When started, `SparkUI` binds to <<appUIAddress, appUIAddress>> address that you can control using `SPARK_PUBLIC_DNS` environment variable or link:spark-sparkenv.adoc#spark_driver_host[spark.driver.host] property.
+When started, `SparkUI` binds to <<appUIAddress, appUIAddress>> address that you can control using `SPARK_PUBLIC_DNS` environment variable or link:spark-driver.adoc#spark_driver_host[spark.driver.host] Spark property.
+
+.SparkUI's Internal Registries and Counters
+[cols="1,2",options="header",width="100%"]
+|===
+| Name
+| Description
+
+| [[appId]] appId
+|
+|===
 
 [TIP]
 ====
@@ -19,7 +29,11 @@ log4j.logger.org.apache.spark.ui.SparkUI=INFO
 Refer to link:spark-logging.adoc[Logging].
 ====
 
-=== [[creating-instance]] Creating SparkUI Instance
+=== [[attachTab]] `attachTab` Method
+
+CAUTION: FIXME
+
+=== [[creating-instance]] Creating `SparkUI` Instance
 
 [source, scala]
 ----
@@ -41,9 +55,20 @@ extends WebUI(securityManager,
   conf, basePath, "SparkUI")
 ----
 
-When executed, `SparkUI` creates a link:spark-webui-stages.adoc[StagesTab] and <<initialize, initializes the tabs and handlers in web UI>>.
+When executed, `SparkUI` creates a link:spark-webui-StagesTab.adoc[StagesTab] and <<initialize, initializes the tabs and handlers in web UI>>.
 
-NOTE: `SparkUI` is created when link:spark-sparkcontext-creating-instance-internals.adoc#ui[`SparkContext` is created] (with link:spark-webui.adoc#spark_ui_enabled[spark.ui.enabled] enabled). `SparkUI` gets the references to the owning `SparkContext` and the other properties, i.e. link:spark-configuration.adoc[SparkConf], link:spark-sparkcontext.adoc#listenerBus[`LiveListenerBus` Event Bus], link:spark-webui-JobProgressListener.adoc[JobProgressListener], `SecurityManager`, `appName`, and `startTime`.
+NOTE: `SparkUI` is created when link:spark-sparkcontext-creating-instance-internals.adoc#ui[`SparkContext` is created] (with link:spark-webui.adoc#spark.ui.enabled[spark.ui.enabled] enabled). `SparkUI` gets the references to the owning `SparkContext` and the other properties, i.e. link:spark-SparkConf.adoc[SparkConf], link:spark-sparkcontext.adoc#listenerBus[`LiveListenerBus` Event Bus], link:spark-webui-JobProgressListener.adoc[JobProgressListener], `SecurityManager`, `appName`, and `startTime`.
+
+=== [[setAppId]] Assigning Unique Identifier of Spark Application -- `setAppId` Method
+
+[source, scala]
+----
+setAppId(id: String): Unit
+----
+
+`setAppId` sets the internal <<appId, appId>>.
+
+NOTE: `setAppId` is used exclusively when `SparkContext` link:spark-sparkcontext-creating-instance-internals.adoc#spark.app.id[is initialized].
 
 === [[initialize]] Attaching Tabs and Context Handlers -- `initialize` Method
 
@@ -52,10 +77,10 @@ NOTE: `SparkUI` is created when link:spark-sparkcontext-creating-instance-intern
 initialize(): Unit
 ----
 
-`initialize` attaches the tabs of the following pages:
+`initialize` <<attachTab, attaches the following tabs>>:
 
 1. link:spark-webui-jobs.adoc[JobsTab]
-2. link:spark-webui-stages.adoc[StagesTab]
+2. link:spark-webui-StagesTab.adoc[StagesTab]
 3. link:spark-webui-storage.adoc[StorageTab]
 4. link:spark-webui-environment.adoc[EnvironmentTab]
 5. link:spark-webui-executors.adoc[ExecutorsTab]
@@ -126,7 +151,7 @@ createLiveUI(
 
 Internally, `createLiveUI` simply forwards the call to <<create, create>>.
 
-NOTE: `createLiveUI` is called when link:spark-sparkcontext-creating-instance-internals.adoc#ui[`SparkContext` is created] (and link:spark-webui.adoc#spark_ui_enabled[spark.ui.enabled] is enabled).
+NOTE: `createLiveUI` is called when link:spark-sparkcontext-creating-instance-internals.adoc#ui[`SparkContext` is created] (and link:spark-webui.adoc#spark.ui.enabled[spark.ui.enabled] is enabled).
 
 === [[createHistoryUI]] `createHistoryUI` Method
 
@@ -147,11 +172,19 @@ create(
   startTime: Long): SparkUI
 ----
 
-`create` is a factory helper method to create a `SparkUI`. It is responsible for registering the link:spark-SparkListener.adoc[SparkListeners] for `SparkUI`.
+`create` creates a `SparkUI` and is responsible for registering link:spark-SparkListener.adoc[SparkListeners] for `SparkUI`.
 
 NOTE: `create` creates a web UI for <<createLiveUI, a running Spark application>> and <<createHistoryUI, Spark History Server>>.
 
-Internally, `create` registers a link:spark-webui-EnvironmentListener.adoc[EnvironmentListener], link:spark-webui-StorageStatusListener.adoc[StorageStatusListener], link:spark-webui-executors-ExecutorsListener.adoc[ExecutorsListener], link:spark-webui-StorageListener.adoc[StorageListener], and link:spark-webui-RDDOperationGraphListener.adoc[RDDOperationGraphListener] with the input `listenerBus`. Once the listeners are registered, `create` <<creating-instance, creates an instance of `SparkUI`>>.
+Internally, `create` registers the following link:spark-SparkListener.adoc[SparkListeners] with the input `listenerBus`.
+
+* link:spark-webui-EnvironmentListener.adoc[EnvironmentListener]
+* link:spark-webui-StorageStatusListener.adoc[StorageStatusListener]
+* link:spark-webui-executors-ExecutorsListener.adoc[ExecutorsListener]
+* link:spark-webui-StorageListener.adoc#creating-instance[StorageListener]
+* link:spark-webui-RDDOperationGraphListener.adoc[RDDOperationGraphListener]
+
+`create` then <<creating-instance, creates a `SparkUI`>>.
 
 === [[appUIHostPort]] `appUIHostPort` Method
 

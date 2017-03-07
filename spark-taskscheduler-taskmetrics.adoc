@@ -1,7 +1,171 @@
-== TaskMetrics
+== [[TaskMetrics]] TaskMetrics
+
+`TaskMetrics` is a <<metrics, collection of metrics>> tracked during execution of a link:spark-taskscheduler-tasks.adoc[Task].
+
+`TaskMetrics` uses link:spark-accumulators.adoc[accumulators] to represent the metrics and offers "increment" methods to increment them.
+
+NOTE: The local values of the accumulators for a link:spark-taskscheduler-tasks.adoc[task] (as accumulated while the link:spark-taskscheduler-tasks.adoc#run[task runs]) are sent from the executor to the driver when the task completes (and <<fromAccumulators, `DAGScheduler` re-creates `TaskMetrics`>>).
+
+[[metrics]]
+.Metrics
+[cols="1,1,1,2",options="header",width="100%"]
+|===
+| Property
+| Name
+| Type
+| Description
+
+| [[_memoryBytesSpilled]] `_memoryBytesSpilled`
+| `internal.metrics.memoryBytesSpilled`
+| `LongAccumulator`
+| Used in <<memoryBytesSpilled, memoryBytesSpilled>>, <<incMemoryBytesSpilled, incMemoryBytesSpilled>>
+
+| [[_updatedBlockStatuses]] `_updatedBlockStatuses`
+| `internal.metrics.updatedBlockStatuses`
+| `CollectionAccumulator[(BlockId, BlockStatus)]`
+| Used in <<updatedBlockStatuses, updatedBlockStatuses>>, <<incUpdatedBlockStatuses, recording updated `BlockStatus` for a `Block`>>, <<setUpdatedBlockStatuses, setUpdatedBlockStatuses>>
+
+|===
+
+
+[[internal-registries]]
+.TaskMetrics's Internal Registries and Counters
+[cols="1,2",options="header",width="100%"]
+|===
+| Name
+| Description
+
+| [[nameToAccums]] `nameToAccums`
+| Internal link:spark-accumulators.adoc[accumulators] indexed by their names.
+
+Used when `TaskMetrics` <<fromAccumulators, re-creates `TaskMetrics` from `AccumulatorV2s`>>, ...FIXME
+
+NOTE: `nameToAccums` is a `transient` and `lazy` value.
+
+| [[internalAccums]] `internalAccums`
+| Collection of internal link:spark-accumulators.adoc[AccumulatorV2] objects.
+
+Used when...FIXME
+
+NOTE: `internalAccums` is a `transient` and `lazy` value.
+
+| [[externalAccums]] `externalAccums`
+| Collection of external link:spark-accumulators.adoc[AccumulatorV2] objects.
+
+Used when `TaskMetrics` <<fromAccumulators, re-creates `TaskMetrics` from `AccumulatorV2s`>>, ...FIXME
+
+NOTE: `externalAccums` is a `transient` and `lazy` value.
+|===
+
+=== [[accumulators]] `accumulators` Method
 
 CAUTION: FIXME
 
-=== [[incUpdatedBlockStatuses]] incUpdatedBlockStatuses
+=== [[mergeShuffleReadMetrics]] `mergeShuffleReadMetrics` Method
 
 CAUTION: FIXME
+
+=== [[memoryBytesSpilled]] `memoryBytesSpilled` Method
+
+CAUTION: FIXME
+
+=== [[updatedBlockStatuses]] `updatedBlockStatuses` Method
+
+CAUTION: FIXME
+
+=== [[setExecutorCpuTime]] `setExecutorCpuTime` Method
+
+CAUTION: FIXME
+
+=== [[setResultSerializationTime]] `setResultSerializationTime` Method
+
+CAUTION: FIXME
+
+=== [[setJvmGCTime]] `setJvmGCTime` Method
+
+CAUTION: FIXME
+
+=== [[setExecutorRunTime]] `setExecutorRunTime` Method
+
+CAUTION: FIXME
+
+=== [[setExecutorDeserializeCpuTime]] `setExecutorDeserializeCpuTime` Method
+
+CAUTION: FIXME
+
+=== [[setExecutorDeserializeTime]] `setExecutorDeserializeTime` Method
+
+CAUTION: FIXME
+
+=== [[setUpdatedBlockStatuses]] `setUpdatedBlockStatuses` Method
+
+CAUTION: FIXME
+
+=== [[fromAccumulators]] Re-Creating TaskMetrics From AccumulatorV2s -- `fromAccumulators` Method
+
+[source, scala]
+----
+fromAccumulators(accums: Seq[AccumulatorV2[_, _]]): TaskMetrics
+----
+
+`fromAccumulators` creates a new `TaskMetrics` and registers `accums` as internal and external task metrics (using <<nameToAccums, nameToAccums>> internal registry).
+
+Internally, `fromAccumulators` creates a new `TaskMetrics`. It then splits `accums` into internal and external task metrics collections (using <<nameToAccums, nameToAccums>> internal registry).
+
+For every internal task metrics, `fromAccumulators` finds the metrics in <<nameToAccums, nameToAccums>> internal registry (of the new `TaskMetrics` instance), copies link:spark-accumulators.adoc#metadata[metadata], and link:spark-accumulators.adoc#merge[merges state].
+
+In the end, `fromAccumulators` <<externalAccums, adds the external accumulators to the new `TaskMetrics` instance>>.
+
+NOTE: `fromAccumulators` is used exclusively when link:spark-dagscheduler-DAGSchedulerEventProcessLoop.adoc#handleTaskCompletion[`DAGScheduler` gets notified that a task has finished] (and re-creates `TaskMetrics`).
+
+=== [[incMemoryBytesSpilled]] Recording Memory Bytes Spilled -- `incMemoryBytesSpilled` Method
+
+[source, scala]
+----
+incMemoryBytesSpilled(v: Long): Unit
+----
+
+`incMemoryBytesSpilled` adds `v` to <<_memoryBytesSpilled, _memoryBytesSpilled>> task metrics.
+
+[NOTE]
+====
+`incMemoryBytesSpilled` is used when:
+
+1. link:spark-Aggregator.adoc#updateMetrics[`Aggregator` updates task metrics]
+
+2. link:spark-rdd-cogroupedrdd.adoc[`CoGroupedRDD` computes a `Partition`]
+
+3. link:spark-BlockStoreShuffleReader.adoc#read[`BlockStoreShuffleReader` reads combined key-value records for a reduce task]
+
+4. link:spark-ShuffleExternalSorter.adoc#spill[`ShuffleExternalSorter` frees execution memory by spilling to disk]
+
+5. link:spark-ExternalSorter.adoc#writePartitionedFile[`ExternalSorter` writes the records into a temporary partitioned file in the disk store]
+
+6. `UnsafeExternalSorter` spills current records due to memory pressure
+
+7. `SpillableIterator` spills records to disk
+
+8. link:spark-JsonProtocol.adoc#taskMetricsFromJson[`JsonProtocol` creates `TaskMetrics` from JSON]
+====
+
+=== [[incUpdatedBlockStatuses]] Recording Updated BlockStatus For Block -- `incUpdatedBlockStatuses` Method
+
+[source, scala]
+----
+incUpdatedBlockStatuses(v: (BlockId, BlockStatus)): Unit
+----
+
+`incUpdatedBlockStatuses` adds `v` in <<_updatedBlockStatuses, _updatedBlockStatuses>> internal registry.
+
+NOTE: `incUpdatedBlockStatuses` is used exclusively when link:spark-blockmanager.adoc#addUpdatedBlockStatusToTaskMetrics[`BlockManager` does `addUpdatedBlockStatusToTaskMetrics`].
+
+=== [[register]] Registering Internal Accumulators -- `register` Method
+
+[source, scala]
+----
+register(sc: SparkContext): Unit
+----
+
+`register` link:spark-accumulators.adoc#register[registers the internal accumulators] (from <<nameToAccums, nameToAccums>> internal registry) with `countFailedValues` enabled (`true`).
+
+NOTE: `register` is used exclusively when link:spark-DAGScheduler-Stage.adoc#makeNewStageAttempt[`Stage` is requested for its new attempt].

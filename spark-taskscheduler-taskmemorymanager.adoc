@@ -1,15 +1,34 @@
-== TaskMemoryManager
+== [[TaskMemoryManager]] TaskMemoryManager
 
-`TaskMemoryManager` manages the memory allocated by an link:spark-taskscheduler-tasks.adoc[individual task].
+`TaskMemoryManager` manages the memory allocated to an link:spark-taskscheduler-tasks.adoc[individual task].
 
-It assumes that:
+`TaskMemoryManager` assumes that:
 
 * The number of bits to address pages (aka `PAGE_NUMBER_BITS`) is `13`
 * The number of bits to encode offsets in data pages (aka `OFFSET_BITS`) is `51` (i.e. 64 bits - `PAGE_NUMBER_BITS`)
 * The number of entries in the <<pageTable, page table>> and <<allocatedPages, allocated pages>> (aka `PAGE_TABLE_SIZE`) is `8192` (i.e. 1 << `PAGE_NUMBER_BITS`)
 * The maximum page size (aka `MAXIMUM_PAGE_SIZE_BYTES`) is `15GB` (i.e. `((1L << 31) - 1) * 8L`)
 
-NOTE: It is used to create a link:spark-taskscheduler-taskcontext.adoc#TaskContextImpl[TaskContextImpl] instance.
+.`TaskMemoryManager` Internal Registries
+[cols="1,2",options="header",width="100%"]
+|===
+| Name | Description
+| [[pageTable]] `pageTable` | The array of size `PAGE_TABLE_SIZE` with indices being `MemoryBlock` objects.
+
+When <<allocatePage, allocating a `MemoryBlock` page for Tungsten consumers>>, the index corresponds to `pageNumber` that points to the `MemoryBlock` page allocated.
+
+| [[allocatedPages]] `allocatedPages` | Collection of flags (`true` or `false` values) of size `PAGE_TABLE_SIZE` with all bits initially disabled (i.e. `false`).
+
+TIP: `allocatedPages` is https://docs.oracle.com/javase/8/docs/api/java/util/BitSet.html[java.util.BitSet].
+
+When <<allocatePage, allocatePage>> is called, it will record the page in the registry by setting the bit at the specified index (that corresponds to the allocated page) to `true`.
+
+| [[consumers]] `consumers` | Set of link:spark-MemoryConsumer.adoc[MemoryConsumers]
+
+| [[acquiredButNotUsed]] `acquiredButNotUsed` | The size of memory allocated but not used.
+|===
+
+NOTE: `TaskMemoryManager` is used to link:spark-taskscheduler-TaskContextImpl.adoc#creating-instance[create a `TaskContextImpl`].
 
 [TIP]
 ====
@@ -26,6 +45,38 @@ Refer to link:spark-logging.adoc[Logging].
 
 CAUTION: FIXME How to trigger the messages in the logs? What to execute to have them printed out to the logs?
 
+=== [[cleanUpAllAllocatedMemory]] `cleanUpAllAllocatedMemory` Method
+
+`cleanUpAllAllocatedMemory` clears <<pageTable, page table>>.
+
+CAUTION: FIXME
+
+All recorded <<consumers, consumers>> are queried for the size of used memory. If the memory used is greater than 0, the following WARN message is printed out to the logs:
+
+```
+WARN TaskMemoryManager: leak [bytes] memory from [consumer]
+```
+
+The `consumers` collection is then cleared.
+
+link:spark-MemoryManager.adoc#releaseExecutionMemory[MemoryManager.releaseExecutionMemory] is executed to release the memory that is not used by any consumer.
+
+Before `cleanUpAllAllocatedMemory` returns, it calls link:spark-MemoryManager.adoc#releaseAllExecutionMemoryForTask[MemoryManager.releaseAllExecutionMemoryForTask] that in turn becomes the return value.
+
+CAUTION: FIXME Image with the interactions to `MemoryManager`.
+
+=== [[pageSizeBytes]] `pageSizeBytes` Method
+
+CAUTION: FIXME
+
+=== [[releaseExecutionMemory]] `releaseExecutionMemory` Method
+
+CAUTION: FIXME
+
+=== [[showMemoryUsage]] `showMemoryUsage` Method
+
+CAUTION: FIXME
+
 === [[creating-instance]] Creating TaskMemoryManager Instance
 
 [source, java]
@@ -41,31 +92,33 @@ When called, the constructor uses the input link:spark-MemoryManager.adoc[Memory
 
 It also initializes the internal <<consumers, consumers>> to be empty.
 
-NOTE: When a link:spark-executor-taskrunner.adoc#run[`TaskRunner` starts running], it creates a new instance of `TaskMemoryManager` for the task by `taskId`. It then assigns the `TaskMemoryManager` to the individual task before it runs.
+NOTE: When a link:spark-executor-TaskRunner.adoc#run[`TaskRunner` starts running], it creates a new instance of `TaskMemoryManager` for the task by `taskId`. It then assigns the `TaskMemoryManager` to the individual task before it runs.
 
 .Creating TaskMemoryManager for Task
 image::images/spark-taskmemorymanager-creating-instance.png[align="center"]
 
-=== [[acquireExecutionMemory]] Acquire Execution Memory (acquireExecutionMemory method)
+=== [[acquireExecutionMemory]] Acquiring Execution Memory -- `acquireExecutionMemory` Method
 
 [source, java]
 ----
 long acquireExecutionMemory(long required, MemoryConsumer consumer)
 ----
 
-`acquireExecutionMemory` allocates up to `required` size of memory for `consumer`. When no memory could be allocated, it calls `spill` on every consumer, itself including. Finally, it returns the allocated memory.
+`acquireExecutionMemory` allocates up to `required` size of memory for `consumer`. When no memory could be allocated, it calls `spill` on every consumer, itself including. Finally, `acquireExecutionMemory` returns the allocated memory.
 
-NOTE: It synchronizes on itself, and so no other calls on the object could be completed.
+NOTE: `acquireExecutionMemory` synchronizes on itself, and so no other calls on the object could be completed.
 
 NOTE: link:spark-MemoryConsumer.adoc[MemoryConsumer] knows its mode -- on- or off-heap.
 
-It first calls `memoryManager.acquireExecutionMemory(required, taskAttemptId, mode)`.
+`acquireExecutionMemory` first calls `memoryManager.acquireExecutionMemory(required, taskAttemptId, mode)`.
 
 TIP: `TaskMemoryManager` is a mere wrapper of `MemoryManager` to track <<consumers, consumers>>?
 
-When the memory obtained is less than requested (by `required`), it requests all <<consumers, consumers>> to `spill` the remaining required memory.
+CAUTION: FIXME
 
-NOTE: It requests memory from consumers that work in the same mode except the requesting one.
+When the memory obtained is less than requested (by `required`), `acquireExecutionMemory` requests all <<consumers, consumers>> to link:spark-MemoryConsumer.adoc#spill[release memory (by spilling it to disk)].
+
+NOTE: `acquireExecutionMemory` requests memory from consumers that work in the same mode except the requesting one.
 
 You may see the following DEBUG message when `spill` released some memory:
 
@@ -83,7 +136,7 @@ You may also see the following ERROR message in the logs when there is an error 
 ERROR error while calling spill() on [consumer]
 ```
 
-If the earlier `spill` on the consumers did not work out and there is still not enough memory acquired, `acquireExecutionMemory` calls `spill` on the input `consumer` (that requested more memory!)
+If the earlier `spill` on the consumers did not work out and there is still memory to be acquired, `acquireExecutionMemory` link:spark-MemoryConsumer.adoc#spill[requests the input `consumer` to spill memory to disk] (that in fact requested more memory!)
 
 If the `consumer` releases some memory, you should see the following DEBUG message in the logs:
 
@@ -105,37 +158,19 @@ DEBUG Task [taskAttemptId] acquired [bytes] for [consumer]
 
 NOTE: `acquireExecutionMemory` is called when a link:spark-MemoryConsumer.adoc#acquireMemory[`MemoryConsumer` tries to acquires a memory] and <<allocatePage, allocatePage>>.
 
-=== [[getPage]] Getting Page (getPage method)
+=== [[getPage]] Getting Page -- `getPage` Method
 
 CAUTION: FIXME
 
-=== [[getOffsetInPage]] Getting Page Offset (getOffsetInPage method)
+=== [[getOffsetInPage]] Getting Page Offset -- `getOffsetInPage` Method
 
 CAUTION: FIXME
 
-=== [[freePage]] Freeing Memory Page (freePage method)
+=== [[freePage]] Freeing Memory Page -- `freePage` Method
 
 CAUTION: FIXME
 
-=== [[cleanUpAllAllocatedMemory]] cleanUpAllAllocatedMemory
-
-It clears <<pageTable, page table>>.
-
-All recorded <<consumers, consumers>> are queried for the size of used memory. If the memory used is greater than 0, the following WARN message is printed out to the logs:
-
-```
-WARN TaskMemoryManager: leak [bytes] memory from [consumer]
-```
-
-The `consumers` collection is then cleared.
-
-link:spark-MemoryManager.adoc#releaseExecutionMemory[MemoryManager.releaseExecutionMemory] is executed to release the memory that is not used by any consumer.
-
-Before `cleanUpAllAllocatedMemory` returns, it calls link:spark-MemoryManager.adoc#releaseAllExecutionMemoryForTask[MemoryManager.releaseAllExecutionMemoryForTask] that in turn becomes the return value.
-
-CAUTION: FIXME Image with the interactions to `MemoryManager`.
-
-=== [[allocatePage]] Allocating Memory Block for Tungsten Consumers (allocatePage method)
+=== [[allocatePage]] Allocating Memory Block for Tungsten Consumers -- `allocatePage` Method
 
 [source, java]
 ----
@@ -191,39 +226,3 @@ CAUTION: FIXME Why is the code tracking `acquiredButNotUsed`?
 Another <<allocatePage, allocatePage>> attempt is recursively tried.
 
 CAUTION: FIXME Why is there a hope for being able to allocate a page?
-
-=== [[releaseExecutionMemory]] releaseExecutionMemory
-
-CAUTION: FIXME
-
-=== [[internal-registries]] Internal Registries
-
-==== pageTable
-
-`pageTable` is an internal array of size `PAGE_TABLE_SIZE` with indices being `MemoryBlock` objects.
-
-When <<allocatePage, allocating a `MemoryBlock` page for Tungsten consumers>>, the index corresponds to `pageNumber` that points to the `MemoryBlock` page allocated.
-
-==== [[allocatedPages]] allocatedPages
-
-`allocatedPages` is an internal collection of flags (`true` or `false` values) of size `PAGE_TABLE_SIZE` with all bits initially disabled (i.e. `false`).
-
-TIP: `allocatedPages` is https://docs.oracle.com/javase/8/docs/api/java/util/BitSet.html[java.util.BitSet].
-
-When <<allocatePage, allocatePage>> is called, it will record the page in the registry by setting the bit at the specified index (that corresponds to the allocated page) to `true`.
-
-==== [[consumers]] consumers
-
-`consumers` is an internal set of link:spark-MemoryConsumer.adoc[MemoryConsumers].
-
-==== acquiredButNotUsed
-
-`acquiredButNotUsed` tracks the size of memory allocated but not used.
-
-=== [[pageSizeBytes]] pageSizeBytes method
-
-CAUTION: FIXME
-
-=== [[showMemoryUsage]] showMemoryUsage method
-
-CAUTION: FIXME

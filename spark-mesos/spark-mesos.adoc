@@ -104,11 +104,11 @@ I1119 16:01:37.831310 698224640 sched.cpp:1040] Stopping framework '91979713-a32
 
 === [[CoarseMesosSchedulerBackend]] CoarseMesosSchedulerBackend
 
-`CoarseMesosSchedulerBackend` is the link:spark-scheduler-backends.adoc[scheduler backend] for Spark on Mesos.
+`CoarseMesosSchedulerBackend` is the link:spark-SchedulerBackend.adoc[scheduler backend] for Spark on Mesos.
 
-It requires a link:spark-taskscheduler.adoc[Task Scheduler], link:spark-sparkcontext.adoc[Spark context], `mesos://` master URL, and link:spark-security.adoc[Security Manager].
+It requires a link:spark-TaskScheduler.adoc[Task Scheduler], link:spark-sparkcontext.adoc[Spark context], `mesos://` master URL, and link:spark-security.adoc[Security Manager].
 
-It is a specialized link:../spark-scheduler-backends-CoarseGrainedSchedulerBackend.adoc[CoarseGrainedSchedulerBackend] and implements Mesos's http://mesos.apache.org/api/latest/java/org/apache/mesos/Scheduler.html[org.apache.mesos.Scheduler] interface.
+It is a specialized link:../spark-CoarseGrainedSchedulerBackend.adoc[CoarseGrainedSchedulerBackend] and implements Mesos's http://mesos.apache.org/api/latest/java/org/apache/mesos/Scheduler.html[org.apache.mesos.Scheduler] interface.
 
 It accepts only two failures before blacklisting a Mesos slave (it is hardcoded and not configurable).
 
@@ -126,13 +126,8 @@ TIP: `createSchedulerDriver` instantiates Mesos's org.apache.mesos.MesosSchedule
 
 CoarseMesosSchedulerBackend starts the *MesosSchedulerUtils-mesos-driver* daemon thread with Mesos's http://mesos.apache.org/api/latest/java/org/apache/mesos/MesosSchedulerDriver.html[org.apache.mesos.MesosSchedulerDriver].
 
-==== [[defaultParallelism]] Default Level of Parallelism
-
-The default parallelism is controlled by <<settings, spark.default.parallelism>>.
-
 ==== [[settings]] Settings
 
-* `spark.default.parallelism` (default: `8`) - the number of cores to use as <<defaultParallelism,  Default Level of Parallelism>>.
 * `spark.cores.max` (default: `Int.MaxValue`) - maximum number of cores to acquire
 * `spark.mesos.extra.cores` (default: `0`) - extra cores per slave (`extraCoresPerSlave`) FIXME
 * `spark.mesos.constraints` (default: (empty)) - offer constraints FIXME `slaveOfferConstraints`
@@ -174,9 +169,9 @@ Available scheduler modes:
 
 The main difference between these two scheduler modes is the number of tasks per Spark executor per single Mesos executor. In fine-grained mode, there is a single task in a single Spark executor that shares a single Mesos executor with the other Spark executors. In coarse-grained mode, there is a single Spark executor per Mesos executor with many Spark tasks.
 
-*Coarse-grained mode* pre-starts all the executor backends, e.g. link:spark-executor-backends.adoc[Executor Backends], so it has the least overhead comparing to *fine-grain mode*. Since the executors are up before tasks get launched, it is better for interactive sessions. It also means that the resources are locked up in a task.
+*Coarse-grained mode* pre-starts all the executor backends, e.g. link:spark-ExecutorBackend.adoc[Executor Backends], so it has the least overhead comparing to *fine-grain mode*. Since the executors are up before tasks get launched, it is better for interactive sessions. It also means that the resources are locked up in a task.
 
-Spark on Mesos supports link:spark-dynamic-allocation.adoc[dynamic allocation] in the Mesos coarse-grained scheduler since Spark 1.5. It can add/remove executors based on load, i.e. kills idle executors and adds executors when tasks queue up. It needs an link:spark-shuffle-manager.adoc[external shuffle service] on each node.
+Spark on Mesos supports link:spark-dynamic-allocation.adoc[dynamic allocation] in the Mesos coarse-grained scheduler since Spark 1.5. It can add/remove executors based on load, i.e. kills idle executors and adds executors when tasks queue up. It needs an link:spark-ShuffleManager.adoc[external shuffle service] on each node.
 
 Mesos Fine-Grained Mode offers a better resource utilization. It has a slower startup for tasks and hence  it is fine for batch and relatively static streaming.
 

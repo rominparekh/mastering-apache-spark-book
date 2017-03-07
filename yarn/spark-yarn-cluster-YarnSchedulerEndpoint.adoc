@@ -16,7 +16,7 @@ Add the following line to `conf/log4j.properties`:
 log4j.logger.org.apache.spark.scheduler.cluster.YarnSchedulerBackend$YarnSchedulerEndpoint=INFO
 ```
 
-Refer to link:spark-logging.adoc[Logging].
+Refer to link:../spark-logging.adoc[Logging].
 ====
 
 === [[messages]] RPC Messages
@@ -71,7 +71,7 @@ If it defines a filter, i.e. the input `filterName` and `filterParams` are both 
 INFO Add WebUI Filter. [filterName], [filterParams], [proxyBase]
 ```
 
-It then sets `spark.ui.filters` to be the input `filterName` in the internal `conf` link:spark-configuration.adoc[SparkConf] attribute.
+It then sets `spark.ui.filters` to be the input `filterName` in the internal `conf` link:../spark-SparkConf.adoc[SparkConf] attribute.
 
 All the `filterParams` are also set as `spark.[filterName].param.[key]` and `[value]`.
 
@@ -100,7 +100,7 @@ NOTE: `shouldResetOnAmRegister` controls link:spark-yarn-cluster-YarnSchedulerEn
 
 ==== [[RetrieveLastAllocatedExecutorId]] RetrieveLastAllocatedExecutorId
 
-When `RetrieveLastAllocatedExecutorId` is received, `YarnSchedulerEndpoint` responds with the current value of link:../spark-scheduler-backends-CoarseGrainedSchedulerBackend.adoc#currentExecutorIdCounter[currentExecutorIdCounter].
+When `RetrieveLastAllocatedExecutorId` is received, `YarnSchedulerEndpoint` responds with the current value of link:../spark-CoarseGrainedSchedulerBackend.adoc#currentExecutorIdCounter[currentExecutorIdCounter].
 
 NOTE: It is used by link:spark-yarn-YarnAllocator.adoc[`YarnAllocator` to initialize the internal `executorIdCounter` (so it gives proper identifiers for new executors when `ApplicationMaster` restarts)]
 
